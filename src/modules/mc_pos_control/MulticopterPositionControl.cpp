@@ -38,6 +38,7 @@
 #include <lib/matrix/matrix/math.hpp>
 #include <px4_platform_common/events.h>
 #include "PositionControl/ControlMath.hpp"
+#include <iostream>
 
 using namespace matrix;
 
@@ -67,6 +68,35 @@ bool MulticopterPositionControl::init()
 	_time_stamp_last_loop = hrt_absolute_time();
 	ScheduleNow();
 
+
+
+	// ######################################################################################
+
+	// Loss Of Effectiveness
+	_mix(0,0) = -0.495384;
+	_mix(1,0) = 0.495384;
+	_mix(2,0) = 0.495384;
+	_mix(3,0) = -0.495384;
+
+	_mix(0,1) = 0.707107;
+	_mix(1,1) = -0.707107;
+	_mix(2,1) = 0.707107;
+	_mix(3,1) = -0.707107;
+
+	_mix(0,2) = 0.765306;
+	_mix(1,2) = 1;
+	_mix(2,2) = -0.765306;
+	_mix(3,2) = -1;
+
+	_mix(0,3) = -1;
+	_mix(1,3) = -1;
+	_mix(2,3) = -1;
+	_mix(3,3) = -1;
+
+	Du_.setZero();
+	unity.setOne();
+
+	// #######################################################################################
 	return true;
 }
 
@@ -425,7 +455,58 @@ void MulticopterPositionControl::Run()
 		}
 
 		PositionControlStates states{set_vehicle_states(vehicle_local_position, dt)};
+		// #############################################################################
 
+		//Thrust
+		acc = _control._compute_thrust(states);
+		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
+
+
+		//Thrust
+		// _vehicle_acceleration_sub.update(&_vehicle_acceleration_get);
+		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
+
+		//Thrust
+		// acc_new = _control._compute_thrust_new(_vehicle_acceleration_get.xyz, states);
+		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
+
+		//Torques
+		_computed_torque_sub.update(&_computed_torque_get);
+		// std::cout<<_computed_torque_get.computed_torque[0]<<" "<<_computed_torque_get.computed_torque[1]<<" "<<_computed_torque_get.computed_torque[2]<<"\n";
+
+		//Takeoff Status
+		_takeoff_status_sub.update(&_takeoff_status_get);
+		std::cout<<_takeoff_status_get.takeoff_state;
+
+		//Speed
+		_actuator_speed_sub.update(&_actuator_speed_get);
+		// std::cout<<_actuator_speed_get.actuator_speed_sp[0]<<" "<<_actuator_speed_get.actuator_speed_sp[1]<<" "<<_actuator_speed_get.actuator_speed_sp[2]<<_actuator_speed_get.actuator_speed_sp[3]<<"\n";
+
+		Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
+		Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
+		Du_(2,2) = math::min(1/_actuator_speed_get.actuator_speed_sp[2],100.0f);
+		Du_(3,3) = math::min(1/_actuator_speed_get.actuator_speed_sp[3],100.0f);
+
+		T(0,0) = _computed_torque_get.computed_torque[0];
+		T(1,0) = _computed_torque_get.computed_torque[1];
+		T(2,0) = _computed_torque_get.computed_torque[2];
+		T(3,0) = acc(2);
+
+		A_ = Du_*_mix;
+		loe = unity - A_*T;
+
+		loe(0,0) = math::min(loe(0,0),100.0f);
+		loe(1,0) = math::min(loe(1,0),100.0f);
+		loe(2,0) = math::min(loe(2,0),100.0f);
+		loe(3,0) = math::min(loe(3,0),100.0f);
+
+		// std::cout<<loe;
+		// std::cout<<acc;
+		// std::cout<<acc_new;
+		// std::cout<<_vehicle_acceleration_get.xyz[0]<<" "<<_vehicle_acceleration_get.xyz[1]<<" "<<_vehicle_acceleration_get.xyz[2]+9.80665f<<"\n";
+
+
+		// ################################################################################
 		// if a goto setpoint available this publishes a trajectory setpoint to go there
 		if (_goto_control.checkForSetpoint(vehicle_local_position.timestamp_sample,
 						   _vehicle_control_mode.flag_multicopter_position_control_enabled)) {

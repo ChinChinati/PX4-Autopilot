@@ -1,0 +1,5 @@
+menuconfig EXAMPLES_SAMPLING
+	bool "sampling"
+	default n
+	---help---
+		Enable support for sampling

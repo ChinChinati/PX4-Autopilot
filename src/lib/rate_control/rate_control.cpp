@@ -85,6 +85,21 @@ Vector3f RateControl::update(const Vector3f &rate, const Vector3f &rate_sp, cons
 	return torque;
 }
 
+Vector3f RateControl::_compute_torques(Vector3f torques){
+	//Inertia Multiplication
+	torques(0) *= float(0.029125);
+	torques(1) *= float(0.029125);
+	torques(2) *= float(0.055225);
+
+	computed_torque_s computed_torque{};
+
+	torques.copyTo(computed_torque.computed_torque);
+	computed_torque.timestamp = hrt_absolute_time();
+
+	_computed_torque_pub.publish(computed_torque);
+	return torques;
+}
+
 void RateControl::updateIntegral(Vector3f &rate_error, const float dt)
 {
 	for (int i = 0; i < 3; i++) {

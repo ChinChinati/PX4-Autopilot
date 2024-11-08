@@ -215,6 +215,8 @@ MulticopterRateControl::Run()
 
 			// run rate controller
 			const Vector3f att_control = _rate_control.update(rates, _rates_setpoint, angular_accel, dt, _maybe_landed || _landed);
+			_rate_control._compute_torques(angular_accel);
+
 
 			// publish rate controller status
 			rate_ctrl_status_s rate_ctrl_status{};

@@ -44,6 +44,7 @@ set(msg_files
 	ActuatorOutputs.msg
 	ActuatorServos.msg
 	ActuatorServosTrim.msg
+	ActuatorSpeed.msg
 	ActuatorTest.msg
 	AdcReport.msg
 	Airspeed.msg
@@ -62,6 +63,8 @@ set(msg_files
 	CellularStatus.msg
 	CollisionConstraints.msg
 	CollisionReport.msg
+	ComputedThrust.msg
+	ComputedTorque.msg
 	ConfigOverrides.msg
 	ControlAllocatorStatus.msg
 	Cpuload.msg
@@ -185,6 +188,7 @@ set(msg_files
 	RegisterExtComponentReply.msg
 	RegisterExtComponentRequest.msg
 	RoverAckermannGuidanceStatus.msg
+	RoverAckermannSetpoint.msg
 	RoverAckermannStatus.msg
 	RoverDifferentialGuidanceStatus.msg
 	RoverDifferentialSetpoint.msg

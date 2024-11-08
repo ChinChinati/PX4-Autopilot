@@ -39,7 +39,7 @@
  */
 
 #include "ControlAllocationSequentialDesaturation.hpp"
-
+#include<bits/stdc++.h>
 
 void
 ControlAllocationSequentialDesaturation::allocate()
@@ -181,6 +181,8 @@ ControlAllocationSequentialDesaturation::mixAirmodeDisabled()
 	ActuatorVector pitch;
 
 	for (int i = 0; i < _num_actuators; i++) {
+		// std::cout<<_mix(i, ControlAxis::ROLL)<<" "<<_mix(i, ControlAxis::PITCH)<<" "<<_mix(i, ControlAxis::YAW)
+		// <<" "<<_mix(i, ControlAxis::THRUST_X)<<" "<<_mix(i, ControlAxis::THRUST_Y)<<" "<<_mix(i, ControlAxis::THRUST_Z)<<std::endl;
 		_actuator_sp(i) = _actuator_trim(i) +
 				  _mix(i, ControlAxis::ROLL) * (_control_sp(ControlAxis::ROLL) - _control_trim(ControlAxis::ROLL)) +
 				  _mix(i, ControlAxis::PITCH) * (_control_sp(ControlAxis::PITCH) - _control_trim(ControlAxis::PITCH)) +
@@ -191,13 +193,28 @@ ControlAllocationSequentialDesaturation::mixAirmodeDisabled()
 		roll(i) = _mix(i, ControlAxis::ROLL);
 		pitch(i) = _mix(i, ControlAxis::PITCH);
 	}
-
+	// std::cout<<std::endl;
 	// only reduce thrust
 	desaturateActuators(_actuator_sp, thrust_z, true);
 
 	// Reduce roll/pitch acceleration if needed to unsaturate
 	desaturateActuators(_actuator_sp, roll);
 	desaturateActuators(_actuator_sp, pitch);
+	// float _actuator_sp_arr[4];
+	// _actuator_sp_arr[0] = _actuator_sp(0);
+	// _actuator_sp_arr[1] = _actuator_sp(1);
+	// _actuator_sp_arr[2] = _actuator_sp(2);
+	// _actuator_sp_arr[3] = _actuator_sp(3);
+
+	actuator_speed_s actuator_speed{};
+
+	// torques.copyTo(computed_torque.computed_torque);
+	actuator_speed.timestamp = hrt_absolute_time();
+	actuator_speed.actuator_speed_sp[0] = _actuator_sp(0);
+	actuator_speed.actuator_speed_sp[1] = _actuator_sp(1);
+	actuator_speed.actuator_speed_sp[2] = _actuator_sp(2);
+	actuator_speed.actuator_speed_sp[3] = _actuator_sp(3);
+	_actuator_speed_pub.publish(actuator_speed);
 
 	// Mix yaw independently
 	mixYaw();

@@ -38,7 +38,7 @@
  */
 
 #pragma once
-
+#include<bits/stdc++.h>
 #include <lib/mathlib/mathlib.h>
 #include <matrix/matrix/math.hpp>
 #include <uORB/topics/trajectory_setpoint.h>
@@ -190,6 +190,11 @@ public:
 	 */
 	static const trajectory_setpoint_s empty_trajectory_setpoint;
 
+	//self declaration
+	matrix::Vector3f _compute_thrust(PositionControlStates states);
+	matrix::Vector3f _compute_thrust_new(float states[3],PositionControlStates state);
+	matrix::Vector3f _thr;
+
 private:
 	// The range limits of the hover thrust configuration/estimate
 	static constexpr float HOVER_THRUST_MIN = 0.05f;
@@ -200,6 +205,8 @@ private:
 	void _positionControl(); ///< Position proportional control
 	void _velocityControl(const float dt); ///< Velocity PID control
 	void _accelerationControl(); ///< Acceleration setpoint processing
+
+	//self declaration
 
 	// Gains
 	matrix::Vector3f _gain_pos_p; ///< Position control proportional gain

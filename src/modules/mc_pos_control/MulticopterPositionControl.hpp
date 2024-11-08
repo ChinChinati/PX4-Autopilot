@@ -67,6 +67,12 @@
 #include <uORB/topics/vehicle_land_detected.h>
 #include <uORB/topics/vehicle_local_position.h>
 #include <uORB/topics/vehicle_local_position_setpoint.h>
+#include <uORB/topics/computed_torque.h>
+#include <uORB/topics/actuator_speed.h>
+#include <uORB/topics/vehicle_acceleration.h>
+#include <uORB/topics/takeoff_status.h>
+
+
 
 using namespace time_literals;
 
@@ -87,6 +93,16 @@ public:
 	static int print_usage(const char *reason = nullptr);
 
 	bool init();
+	matrix::Vector3f acc;
+	matrix::Vector3f acc_new;
+	matrix::Matrix<float, 4, 4> _mix; //_Mix is inverse of effectiveness matrix
+	matrix::Matrix<float, 4, 4> Du_; //Du_ is Inverse of Du
+	matrix::Matrix<float, 4, 4> A_; //A_ is Inverse of A = Ah * Du
+	matrix::Matrix<float, 4, 1> unity; //[ 1 1 1 1]^T
+	matrix::Matrix<float, 4, 1> T; //T
+	matrix::Matrix<float, 4, 1> loe; //[ l1 l2 l3 l4]^T
+
+
 
 private:
 	void Run() override;
@@ -108,6 +124,12 @@ private:
 	uORB::Subscription _vehicle_constraints_sub{ORB_ID(vehicle_constraints)};
 	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)};
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
+	uORB::Subscription _computed_torque_sub{ORB_ID(computed_torque)};
+	uORB::Subscription _actuator_speed_sub{ORB_ID(actuator_speed)};
+	uORB::Subscription _vehicle_acceleration_sub{ORB_ID(vehicle_acceleration)};
+	uORB::Subscription _takeoff_status_sub{ORB_ID(takeoff_status)};
+
+
 
 	hrt_abstime _time_stamp_last_loop{0};		/**< time stamp of last loop iteration */
 	hrt_abstime _time_position_control_enabled{0};
@@ -129,6 +151,28 @@ private:
 		.maybe_landed = true,
 		.landed = true,
 	};
+
+	computed_torque_s _computed_torque_get {
+		.timestamp = 0,
+		.computed_torque = {0.0,0.0,0.0},
+	};
+
+	actuator_speed_s _actuator_speed_get {
+		.timestamp = 0,
+		.actuator_speed_sp = {0.0,0.0,0.0,0.0},
+	};
+
+	vehicle_acceleration_s _vehicle_acceleration_get {
+		.timestamp = 0,
+		.timestamp_sample = 0,
+		.xyz = {0.0,0.0,0.0},
+	};
+
+	takeoff_status_s _takeoff_status_get {
+		.timestamp = 0,
+		.takeoff_state = 0,
+	};
+
 
 	DEFINE_PARAMETERS(
 		// Position Control

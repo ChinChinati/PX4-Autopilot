@@ -43,13 +43,16 @@
 
 #include <mathlib/mathlib.h>
 #include <uORB/topics/rate_ctrl_status.h>
+#include <uORB/topics/computed_torque.h>
+#include <uORB/Publication.hpp>
+
 
 class RateControl
 {
 public:
 	RateControl() = default;
 	~RateControl() = default;
-
+	matrix::Vector3f _compute_torques(matrix:: Vector3f torques);
 	/**
 	 * Set the rate control PID gains
 	 * @param P 3D vector of proportional gains for body x,y,z axis
@@ -122,6 +125,7 @@ public:
 
 private:
 	void updateIntegral(matrix::Vector3f &rate_error, const float dt);
+	uORB::Publication<computed_torque_s> _computed_torque_pub{ORB_ID(computed_torque)};
 
 	// Gains
 	matrix::Vector3f _gain_p; ///< rate control proportional gain for all axes x, y, z

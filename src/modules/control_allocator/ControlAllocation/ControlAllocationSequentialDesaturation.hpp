@@ -44,7 +44,8 @@
 #pragma once
 
 #include "ControlAllocationPseudoInverse.hpp"
-
+#include <uORB/topics/actuator_speed.h>
+#include <uORB/Publication.hpp>
 #include <px4_platform_common/module_params.h>
 
 class ControlAllocationSequentialDesaturation: public ControlAllocationPseudoInverse, public ModuleParams
@@ -58,6 +59,7 @@ public:
 
 	void updateParameters() override;
 private:
+	uORB::Publication<actuator_speed_s> _actuator_speed_pub{ORB_ID(actuator_speed)};
 
 	/**
 	 * Minimize the saturation of the actuators by adding or substracting a fraction of desaturation_vector.

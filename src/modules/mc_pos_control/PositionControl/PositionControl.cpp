@@ -221,6 +221,55 @@ void PositionControl::_accelerationControl()
 	_thr_sp = body_z * collective_thrust;
 }
 
+//self editing
+
+matrix::Vector3f PositionControl::_compute_thrust(PositionControlStates states)
+{
+	// Assume standard acceleration due to gravity in vertical direction for attitude generation
+	// float z_specific_force = -CONSTANTS_ONE_G;
+	// std::cout<<states.acceleration;
+	float z_specific_force=0.0;
+	if (!_decouple_horizontal_and_vertical_acceleration) {
+		// Include vertical acceleration setpoint for better horizontal acceleration tracking
+		z_specific_force += states.acceleration(2);
+	}
+	Vector3f body_z = Vector3f(-states.acceleration(0), -states.acceleration(1), -z_specific_force).normalized();
+
+	// Vector3f body_z = Vector3f(-states.acceleration(0), -states.acceleration(1), -z_specific_force).normalized();
+	ControlMath::limitTilt(body_z, Vector3f(0, 0, 1), _lim_tilt);
+	// Convert to thrust assuming hover thrust produces standard gravity
+	const float thrust_ned_z = states.acceleration(2) * (_hover_thrust / CONSTANTS_ONE_G) - _hover_thrust;
+	// Project thrust to planned body attitude
+	const float cos_ned_body = (Vector3f(0, 0, 1).dot(body_z));
+	const float collective_thrust = math::min(thrust_ned_z / cos_ned_body, -_lim_thr_min);
+	_thr = body_z * collective_thrust;
+	// _thr_sp_1 -= _thr_sp;
+	return _thr;
+}
+
+matrix::Vector3f PositionControl::_compute_thrust_new(float states[3], PositionControlStates state)
+{
+	// Assume standard acceleration due to gravity in vertical direction for attitude generation
+	// float z_specific_force = -CONSTANTS_ONE_G;
+	float z_specific_force=0.0;
+	if (!_decouple_horizontal_and_vertical_acceleration) {
+		// Include vertical acceleration setpoint for better horizontal acceleration tracking
+		z_specific_force += states[2];
+	}
+	Vector3f body_z = Vector3f(-state.acceleration(0), -state.acceleration(1), -(states[2]+CONSTANTS_ONE_G)).normalized();
+
+	// Vector3f body_z = Vector3f(-states[0], -states[1], -z_specific_force).normalized();
+	ControlMath::limitTilt(body_z, Vector3f(0, 0, 1), _lim_tilt);
+	// Convert to thrust assuming hover thrust produces standard gravity
+	const float thrust_ned_z = states[2] * (_hover_thrust / CONSTANTS_ONE_G) - _hover_thrust;
+	// Project thrust to planned body attitude
+	const float cos_ned_body = (Vector3f(0, 0, 1).dot(body_z));
+	const float collective_thrust = math::min(thrust_ned_z / cos_ned_body, -_lim_thr_min);
+	_thr = body_z * collective_thrust;
+	// _thr_sp_1 -= _thr_sp;
+	return _thr;
+}
+
 bool PositionControl::_inputValid()
 {
 	bool valid = true;
