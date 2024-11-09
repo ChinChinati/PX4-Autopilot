@@ -476,39 +476,85 @@ void MulticopterPositionControl::Run()
 
 		//Takeoff Status
 		_takeoff_status_sub.update(&_takeoff_status_get);
-		std::cout<<_takeoff_status_get.takeoff_state;
+		// std::cout<<_takeoff_status_get.takeoff_state;
 
 		//Speed
 		_actuator_speed_sub.update(&_actuator_speed_get);
+		_vehicle_status_sub.update(&_vehicle_status_get);
 		// std::cout<<_actuator_speed_get.actuator_speed_sp[0]<<" "<<_actuator_speed_get.actuator_speed_sp[1]<<" "<<_actuator_speed_get.actuator_speed_sp[2]<<_actuator_speed_get.actuator_speed_sp[3]<<"\n";
+		if (_vehicle_status_get.takeoff_time > 0 && flag==true){
+			Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
+			Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
+			Du_(2,2) = math::min(1/_actuator_speed_get.actuator_speed_sp[2],100.0f);
+			Du_(3,3) = math::min(1/_actuator_speed_get.actuator_speed_sp[3],100.0f);
 
-		Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
-		Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
-		Du_(2,2) = math::min(1/_actuator_speed_get.actuator_speed_sp[2],100.0f);
-		Du_(3,3) = math::min(1/_actuator_speed_get.actuator_speed_sp[3],100.0f);
+			T(0,0) = _computed_torque_get.computed_torque[0];
+			T(1,0) = _computed_torque_get.computed_torque[1];
+			T(2,0) = _computed_torque_get.computed_torque[2];
+			T(3,0) = acc(2);
 
-		T(0,0) = _computed_torque_get.computed_torque[0];
-		T(1,0) = _computed_torque_get.computed_torque[1];
-		T(2,0) = _computed_torque_get.computed_torque[2];
-		T(3,0) = acc(2);
+			A_ = Du_*_mix;
+			loe = unity - A_*T;
 
-		A_ = Du_*_mix;
-		loe = unity - A_*T;
+			loe(0,0) = math::min(loe(0,0),100.0f);
+			loe(1,0) = math::min(loe(1,0),100.0f);
+			loe(2,0) = math::min(loe(2,0),100.0f);
+			loe(3,0) = math::min(loe(3,0),100.0f);
+			std::cout<<"Loss of Effectiveness Matrix\n";
+			std::cout<<"Motor[0]: "<<loe(0,0)<<"\n";
+			std::cout<<"Motor[1]: "<<loe(1,0)<<"\n";
+			std::cout<<"Motor[2]: "<<loe(2,0)<<"\n";
+			std::cout<<"Motor[3]: "<<loe(3,0)<<"\n\n";
+			if(loe(0,0) >= 0.9f){
+				std::cout<<"########### Motor [1] failed ###########\n";
+				motor_failed_s motor_failed{};
+				motor_failed.motor_failed = 1 ;
+				motor_failed.timestamp = hrt_absolute_time();
+				_motor_failed_pub.publish(motor_failed);
+				flag=false;
+			}
+			else if(loe(1,0) >= 0.9f){
+				std::cout<<"########### Motor [2] failed ###########\n";
+				motor_failed_s motor_failed{};
+				motor_failed.motor_failed = 2 ;
+				motor_failed.timestamp = hrt_absolute_time();
+				_motor_failed_pub.publish(motor_failed);
+				flag=false;
+			}
+			else if(loe(2,0) >= 0.9f){
+				std::cout<<"########### Motor [3] failed ###########\n";
+				motor_failed_s motor_failed{};
+				motor_failed.motor_failed = 3 ;
+				motor_failed.timestamp = hrt_absolute_time();
+				_motor_failed_pub.publish(motor_failed);
+				flag=false;
+			}
+			else if(loe(3,0) >= 0.9f){
+				std::cout<<"########### Motor [4] failed ###########\n";
+				motor_failed_s motor_failed{};
+				motor_failed.motor_failed = 4 ;
+				motor_failed.timestamp = hrt_absolute_time();
+				_motor_failed_pub.publish(motor_failed);
+				flag=false;
+			}
+		}
+		// Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
+		// Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
+		// Du_(2,2) = math::min(1/_actuator_speed_get.actuator_speed_sp[2],100.0f);
+		// Du_(3,3) = math::min(1/_actuator_speed_get.actuator_speed_sp[3],100.0f);
 
-		loe(0,0) = math::min(loe(0,0),100.0f);
-		loe(1,0) = math::min(loe(1,0),100.0f);
-		loe(2,0) = math::min(loe(2,0),100.0f);
-		loe(3,0) = math::min(loe(3,0),100.0f);
+		// T(0,0) = _computed_torque_get.computed_torque[0];
+		// T(1,0) = _computed_torque_get.computed_torque[1];
+		// T(2,0) = _computed_torque_get.computed_torque[2];
+		// T(3,0) = acc(2);
 
-		loe_matrix_s loe_matrix{};
+		// A_ = Du_*_mix;
+		// loe = unity - A_*T;
 
-		loe_matrix.timestamp = hrt_absolute_time();
-		loe_matrix.loe_matrix[0] = loe(0,0);
-		loe_matrix.loe_matrix[1] = loe(1,0);
-		loe_matrix.loe_matrix[2] = loe(2,0);
-		loe_matrix.loe_matrix[3] = loe(3,0);
-		_loe_matrix_pub.publish(loe_matrix);
-
+		// loe(0,0) = math::min(loe(0,0),100.0f);
+		// loe(1,0) = math::min(loe(1,0),100.0f);
+		// loe(2,0) = math::min(loe(2,0),100.0f);
+		// loe(3,0) = math::min(loe(3,0),100.0f);
 
 		// std::cout<<loe;
 		// std::cout<<acc;
