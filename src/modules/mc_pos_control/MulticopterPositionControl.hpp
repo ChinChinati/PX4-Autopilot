@@ -71,9 +71,10 @@
 #include <uORB/topics/actuator_speed.h>
 #include <uORB/topics/vehicle_acceleration.h>
 #include <uORB/topics/takeoff_status.h>
-#include <uORB/topics/loe_matrix.h>
-
-
+#include <uORB/topics/vehicle_status.h>
+#include <uORB/topics/vehicle_land_detected.h>
+#include <uORB/topics/motor_failed.h>
+#include <uORB/Publication.hpp>
 
 using namespace time_literals;
 
@@ -94,6 +95,10 @@ public:
 	static int print_usage(const char *reason = nullptr);
 
 	bool init();
+
+	// #########################################################
+	// self declarations for parameters required in fault analysis
+	bool flag=true;
 	matrix::Vector3f acc;
 	matrix::Vector3f acc_new;
 	matrix::Matrix<float, 4, 4> _mix; //_Mix is inverse of effectiveness matrix
@@ -103,10 +108,14 @@ public:
 	matrix::Matrix<float, 4, 1> T; //T
 	matrix::Matrix<float, 4, 1> loe; //[ l1 l2 l3 l4]^T
 
-
+	// ##########################################################
 
 private:
 	void Run() override;
+
+	// #########################################################
+	// bool isArmed() const { return (_vehicle_status.arming_state == vehicle_status_s::ARMING_STATE_ARMED); }
+	// ##########################################################
 
 	TakeoffHandling _takeoff; /**< state machine and ramp to bring the vehicle off the ground without jumps */
 
@@ -115,7 +124,10 @@ private:
 	uORB::PublicationData<takeoff_status_s>              _takeoff_status_pub{ORB_ID(takeoff_status)};
 	uORB::Publication<vehicle_attitude_setpoint_s>	     _vehicle_attitude_setpoint_pub{ORB_ID(vehicle_attitude_setpoint)};
 	uORB::Publication<vehicle_local_position_setpoint_s> _local_pos_sp_pub{ORB_ID(vehicle_local_position_setpoint)};	/**< vehicle local position setpoint publication */
-	uORB::Publication<loe_matrix_s> _loe_matrix_pub{ORB_ID(loe_matrix)};
+
+	// ##################################################
+	uORB::Publication<motor_failed_s> _motor_failed_pub{ORB_ID(motor_failed)};
+	// ##################################################
 
 	uORB::SubscriptionCallbackWorkItem _local_pos_sub{this, ORB_ID(vehicle_local_position)};	/**< vehicle local position */
 
@@ -126,12 +138,14 @@ private:
 	uORB::Subscription _vehicle_constraints_sub{ORB_ID(vehicle_constraints)};
 	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)};
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
+
+	// #####################################################
 	uORB::Subscription _computed_torque_sub{ORB_ID(computed_torque)};
 	uORB::Subscription _actuator_speed_sub{ORB_ID(actuator_speed)};
 	uORB::Subscription _vehicle_acceleration_sub{ORB_ID(vehicle_acceleration)};
 	uORB::Subscription _takeoff_status_sub{ORB_ID(takeoff_status)};
-
-
+	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
+	//######################################################
 
 	hrt_abstime _time_stamp_last_loop{0};		/**< time stamp of last loop iteration */
 	hrt_abstime _time_position_control_enabled{0};
@@ -175,8 +189,9 @@ private:
 		.takeoff_state = 0,
 	};
 
-	
-
+	vehicle_status_s _vehicle_status_get{
+		.takeoff_time = 0,
+	};
 
 	DEFINE_PARAMETERS(
 		// Position Control
