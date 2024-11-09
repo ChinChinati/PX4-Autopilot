@@ -150,6 +150,7 @@ set(msg_files
 	MissionResult.msg
 	MountOrientation.msg
 	ModeCompleted.msg
+ 	MotorFailed.msg
 	NavigatorMissionItem.msg
 	NavigatorStatus.msg
 	NormalizedUnsignedSetpoint.msg
