@@ -44,6 +44,8 @@
 #include <uORB/topics/trajectory_setpoint.h>
 #include <uORB/topics/vehicle_attitude_setpoint.h>
 #include <uORB/topics/vehicle_local_position_setpoint.h>
+#include <uORB/topics/computed_thrust.h>
+#include <uORB/Publication.hpp>
 
 struct PositionControlStates {
 	matrix::Vector3f position;
@@ -190,10 +192,11 @@ public:
 	 */
 	static const trajectory_setpoint_s empty_trajectory_setpoint;
 
-	//self declaration
+	// ############################################
 	matrix::Vector3f _compute_thrust(PositionControlStates states);
 	matrix::Vector3f _compute_thrust_new(float states[3],PositionControlStates state);
 	matrix::Vector3f _thr;
+	// ############################################
 
 private:
 	// The range limits of the hover thrust configuration/estimate
@@ -206,7 +209,9 @@ private:
 	void _velocityControl(const float dt); ///< Velocity PID control
 	void _accelerationControl(); ///< Acceleration setpoint processing
 
-	//self declaration
+	// ###########################################
+	uORB::Publication<computed_thrust_s> _computed_thrust_pub{ORB_ID(computed_thrust)};
+	// ###########################################
 
 	// Gains
 	matrix::Vector3f _gain_pos_p; ///< Position control proportional gain
