@@ -221,8 +221,7 @@ void PositionControl::_accelerationControl()
 	_thr_sp = body_z * collective_thrust;
 }
 
-//self editing
-
+// ###############################################
 matrix::Vector3f PositionControl::_compute_thrust(PositionControlStates states)
 {
 	// Assume standard acceleration due to gravity in vertical direction for attitude generation
@@ -243,6 +242,12 @@ matrix::Vector3f PositionControl::_compute_thrust(PositionControlStates states)
 	const float cos_ned_body = (Vector3f(0, 0, 1).dot(body_z));
 	const float collective_thrust = math::min(thrust_ned_z / cos_ned_body, -_lim_thr_min);
 	_thr = body_z * collective_thrust;
+
+	computed_thrust_s computed_thrust{};
+	_thr.copyTo(computed_thrust.computed_thrust);
+	computed_thrust.timestamp = hrt_absolute_time();
+	_computed_thrust_pub.publish(computed_thrust);
+
 	// _thr_sp_1 -= _thr_sp;
 	return _thr;
 }
@@ -269,6 +274,7 @@ matrix::Vector3f PositionControl::_compute_thrust_new(float states[3], PositionC
 	// _thr_sp_1 -= _thr_sp;
 	return _thr;
 }
+// ##################################################
 
 bool PositionControl::_inputValid()
 {
