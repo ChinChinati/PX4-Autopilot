@@ -125,7 +125,10 @@ public:
 
 private:
 	void updateIntegral(matrix::Vector3f &rate_error, const float dt);
+
+	// ##########################################################
 	uORB::Publication<computed_torque_s> _computed_torque_pub{ORB_ID(computed_torque)};
+	// ##########################################################
 
 	// Gains
 	matrix::Vector3f _gain_p; ///< rate control proportional gain for all axes x, y, z
