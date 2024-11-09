@@ -500,6 +500,16 @@ void MulticopterPositionControl::Run()
 		loe(2,0) = math::min(loe(2,0),100.0f);
 		loe(3,0) = math::min(loe(3,0),100.0f);
 
+		loe_matrix_s loe_matrix{};
+
+		loe_matrix.timestamp = hrt_absolute_time();
+		loe_matrix.loe_matrix[0] = loe(0,0);
+		loe_matrix.loe_matrix[1] = loe(1,0);
+		loe_matrix.loe_matrix[2] = loe(2,0);
+		loe_matrix.loe_matrix[3] = loe(3,0);
+		_loe_matrix_pub.publish(loe_matrix);
+
+
 		// std::cout<<loe;
 		// std::cout<<acc;
 		// std::cout<<acc_new;

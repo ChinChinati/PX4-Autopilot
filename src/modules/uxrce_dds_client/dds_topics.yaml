@@ -74,6 +74,16 @@ publications:
   - topic: /fmu/out/vehicle_trajectory_waypoint_desired
     type: px4_msgs::msg::VehicleTrajectoryWaypoint
 
+  - topic: /fmu/out/computed_torque
+    type: px4_msgs::msg::ComputedTorque
+
+  - topic: /fmu/out/actuator_speed
+    type: px4_msgs::msg::ActuatorSpeed
+
+  - topic: /fmu/out/loe_matrix
+    type: px4_msgs::msg::LoeMatrix
+
+
 # Create uORB::Publication
 subscriptions:
   - topic: /fmu/in/register_ext_component_request

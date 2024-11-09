@@ -71,6 +71,7 @@
 #include <uORB/topics/actuator_speed.h>
 #include <uORB/topics/vehicle_acceleration.h>
 #include <uORB/topics/takeoff_status.h>
+#include <uORB/topics/loe_matrix.h>
 
 
 
@@ -114,6 +115,7 @@ private:
 	uORB::PublicationData<takeoff_status_s>              _takeoff_status_pub{ORB_ID(takeoff_status)};
 	uORB::Publication<vehicle_attitude_setpoint_s>	     _vehicle_attitude_setpoint_pub{ORB_ID(vehicle_attitude_setpoint)};
 	uORB::Publication<vehicle_local_position_setpoint_s> _local_pos_sp_pub{ORB_ID(vehicle_local_position_setpoint)};	/**< vehicle local position setpoint publication */
+	uORB::Publication<loe_matrix_s> _loe_matrix_pub{ORB_ID(loe_matrix)};
 
 	uORB::SubscriptionCallbackWorkItem _local_pos_sub{this, ORB_ID(vehicle_local_position)};	/**< vehicle local position */
 
@@ -172,6 +174,8 @@ private:
 		.timestamp = 0,
 		.takeoff_state = 0,
 	};
+
+	
 
 
 	DEFINE_PARAMETERS(

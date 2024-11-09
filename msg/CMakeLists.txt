@@ -136,6 +136,7 @@ set(msg_files
 	LaunchDetectionStatus.msg
 	LedControl.msg
 	LoggerStatus.msg
+	LoeMatrix.msg
 	LogMessage.msg
 	MagnetometerBiasEstimate.msg
 	MagWorkerData.msg
