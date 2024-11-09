@@ -85,6 +85,7 @@ Vector3f RateControl::update(const Vector3f &rate, const Vector3f &rate_sp, cons
 	return torque;
 }
 
+// ############################################
 Vector3f RateControl::_compute_torques(Vector3f torques){
 	//Inertia Multiplication
 	torques(0) *= float(0.029125);
@@ -99,6 +100,7 @@ Vector3f RateControl::_compute_torques(Vector3f torques){
 	_computed_torque_pub.publish(computed_torque);
 	return torques;
 }
+// ###########################################
 
 void RateControl::updateIntegral(Vector3f &rate_error, const float dt)
 {
