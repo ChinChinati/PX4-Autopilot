@@ -168,6 +168,7 @@ private:
 		.landed = true,
 	};
 
+	// #######################################################
 	computed_torque_s _computed_torque_get {
 		.timestamp = 0,
 		.computed_torque = {0.0,0.0,0.0},
@@ -192,6 +193,8 @@ private:
 	vehicle_status_s _vehicle_status_get{
 		.takeoff_time = 0,
 	};
+
+	// ######################################################
 
 	DEFINE_PARAMETERS(
 		// Position Control
