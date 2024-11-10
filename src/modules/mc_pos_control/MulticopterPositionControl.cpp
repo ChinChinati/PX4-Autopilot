@@ -459,6 +459,10 @@ void MulticopterPositionControl::Run()
 		PositionControlStates states{set_vehicle_states(vehicle_local_position, dt)};
 		// #############################################################################
 
+		matrix::Vector3f pos = states.position;
+		float low_point = 0.1; //height in m below which loe will be disabled
+		// std::cout<<"Pos"<<" "<<pos(0)<<" "<<pos(1)<<" "<<pos(2)<<"\n";
+
 		//Thrust
 		acc = _control._compute_thrust(states);
 		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
@@ -484,7 +488,7 @@ void MulticopterPositionControl::Run()
 		_actuator_speed_sub.update(&_actuator_speed_get);
 		_vehicle_status_sub.update(&_vehicle_status_get);
 		// std::cout<<_actuator_speed_get.actuator_speed_sp[0]<<" "<<_actuator_speed_get.actuator_speed_sp[1]<<" "<<_actuator_speed_get.actuator_speed_sp[2]<<_actuator_speed_get.actuator_speed_sp[3]<<"\n";
-		if (_vehicle_status_get.takeoff_time > 0 && flag==true){
+		if (_vehicle_status_get.takeoff_time > 0 && flag==true && pos(2)< -1 * low_point){
 			Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
 			Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
 			Du_(2,2) = math::min(1/_actuator_speed_get.actuator_speed_sp[2],100.0f);
