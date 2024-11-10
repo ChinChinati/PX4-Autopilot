@@ -26,8 +26,10 @@ sudo apt install python3-colcon-common-extensions ros-humble-desktop
 ```
 
 ### 3. Build PX4 Firmware
-
-
+```bash
+cd PX4-Autopilot
+make px4_sitl gazebo-classic
+```
 
 
 
