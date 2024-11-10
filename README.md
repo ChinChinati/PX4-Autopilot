@@ -15,5 +15,17 @@ This modified PX4 Autopilot requires:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/px4_modified_autopilot.git
-cd px4_modified_autopilot
+git clone https://github.com/ChinChinati/PX4-Autopilot.git
+cd PX4-Autopilot
+
+### 2. Install Dependencies Install required dependencies, including PX4 and ROS 2 packages.
+```bash
+sudo apt update
+sudo apt install python3-colcon-common-extensions ros-humble-desktop
+
+### 3. Build PX4 Firmware
+
+
+
+
+
