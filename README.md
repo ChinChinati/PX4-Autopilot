@@ -15,8 +15,10 @@ This modified PX4 Autopilot requires:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/ChinChinati/PX4-Autopilot.git
+git clone https://github.com/ChinChinati/PX4-Autopilot.git --recursive
+bash ./PX4-Autopilot/Tools/setup/ubuntu.sh
 cd PX4-Autopilot
+make px4_sitl
 ```
 
 ### 2. Install Dependencies Install required dependencies, including PX4 and ROS 2 packages.
