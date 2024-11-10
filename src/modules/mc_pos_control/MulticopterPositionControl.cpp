@@ -538,6 +538,12 @@ void MulticopterPositionControl::Run()
 				flag=false;
 			}
 		}
+		else{
+			loe(0,0) = 0.0f;
+			loe(1,0) = 0.0f;
+			loe(2,0) = 0.0f;
+			loe(3,0) = 0.0f;
+		}
 		// Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
 		// Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
 		// Du_(2,2) = math::min(1/_actuator_speed_get.actuator_speed_sp[2],100.0f);
@@ -556,11 +562,13 @@ void MulticopterPositionControl::Run()
 		// loe(2,0) = math::min(loe(2,0),100.0f);
 		// loe(3,0) = math::min(loe(3,0),100.0f);
 
-		// std::cout<<loe;
-		// std::cout<<acc;
-		// std::cout<<acc_new;
-		// std::cout<<_vehicle_acceleration_get.xyz[0]<<" "<<_vehicle_acceleration_get.xyz[1]<<" "<<_vehicle_acceleration_get.xyz[2]+9.80665f<<"\n";
+		// A_ = Du_*_mix;
+		// loe = unity - A_*T;
 
+		// loe(0,0) = math::min(loe(0,0),100.0f);
+		// loe(1,0) = math::min(loe(1,0),100.0f);
+		// loe(2,0) = math::min(loe(2,0),100.0f);
+		// loe(3,0) = math::min(loe(3,0),100.0f);
 
 		// ################################################################################
 		// if a goto setpoint available this publishes a trajectory setpoint to go there

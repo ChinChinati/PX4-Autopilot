@@ -71,10 +71,9 @@
 #include <uORB/topics/actuator_speed.h>
 #include <uORB/topics/vehicle_acceleration.h>
 #include <uORB/topics/takeoff_status.h>
-#include <uORB/topics/vehicle_status.h>
-#include <uORB/topics/vehicle_land_detected.h>
+#include <uORB/topics/loe_matrix.h>
 #include <uORB/topics/motor_failed.h>
-#include <uORB/Publication.hpp>
+#include <uORB/topics/vehicle_status.h>
 
 using namespace time_literals;
 
@@ -96,9 +95,8 @@ public:
 
 	bool init();
 
-	// #########################################################
-	// self declarations for parameters required in fault analysis
-	bool flag=true;
+	// ###################################################
+	bool flag = true;
 	matrix::Vector3f acc;
 	matrix::Vector3f acc_new;
 	matrix::Matrix<float, 4, 4> _mix; //_Mix is inverse of effectiveness matrix
@@ -107,6 +105,7 @@ public:
 	matrix::Matrix<float, 4, 1> unity; //[ 1 1 1 1]^T
 	matrix::Matrix<float, 4, 1> T; //T
 	matrix::Matrix<float, 4, 1> loe; //[ l1 l2 l3 l4]^T
+	// ####################################################
 
 	// ##########################################################
 
@@ -124,8 +123,8 @@ private:
 	uORB::PublicationData<takeoff_status_s>              _takeoff_status_pub{ORB_ID(takeoff_status)};
 	uORB::Publication<vehicle_attitude_setpoint_s>	     _vehicle_attitude_setpoint_pub{ORB_ID(vehicle_attitude_setpoint)};
 	uORB::Publication<vehicle_local_position_setpoint_s> _local_pos_sp_pub{ORB_ID(vehicle_local_position_setpoint)};	/**< vehicle local position setpoint publication */
-
 	// ##################################################
+	uORB::Publication<loe_matrix_s> _loe_matrix_pub{ORB_ID(loe_matrix)};
 	uORB::Publication<motor_failed_s> _motor_failed_pub{ORB_ID(motor_failed)};
 	// ##################################################
 
@@ -167,8 +166,7 @@ private:
 		.maybe_landed = true,
 		.landed = true,
 	};
-
-	// #######################################################
+	// #########################################################
 	computed_torque_s _computed_torque_get {
 		.timestamp = 0,
 		.computed_torque = {0.0,0.0,0.0},
@@ -193,8 +191,7 @@ private:
 	vehicle_status_s _vehicle_status_get{
 		.takeoff_time = 0,
 	};
-
-	// ######################################################
+	// #########################################################
 
 	DEFINE_PARAMETERS(
 		// Position Control
