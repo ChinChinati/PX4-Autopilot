@@ -225,6 +225,11 @@ if [[ $INSTALL_SIM == "true" ]]; then
 
 	# Gazebo / Gazebo classic installation
 	if [[ "${UBUNTU_RELEASE}" == "22.04" ]]; then
+		sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+		wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+		# Update list, since new gazebo-stable.list has been added
+		sudo apt-get update -y --quiet
+		
 		# default and Ubuntu 22.04
 		gazebo_classic_version=11
 		gazebo_packages="gazebo$gazebo_classic_version libgazebo$gazebo_classic_version-dev"
