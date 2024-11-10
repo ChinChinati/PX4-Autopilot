@@ -544,6 +544,16 @@ void MulticopterPositionControl::Run()
 			loe(2,0) = 0.0f;
 			loe(3,0) = 0.0f;
 		}
+
+		loe_matrix_s loe_matrix{};
+
+		loe_matrix.timestamp = hrt_absolute_time();
+		loe_matrix.loe_matrix[0] = loe(0,0);
+		loe_matrix.loe_matrix[1] = loe(1,0);
+		loe_matrix.loe_matrix[2] = loe(2,0);
+		loe_matrix.loe_matrix[3] = loe(3,0);
+		_loe_matrix_pub.publish(loe_matrix);
+
 		// Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
 		// Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
 		// Du_(2,2) = math::min(1/_actuator_speed_get.actuator_speed_sp[2],100.0f);
