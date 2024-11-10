@@ -92,6 +92,8 @@ bool MulticopterPositionControl::init()
 	_mix(1,3) = -1;
 	_mix(2,3) = -1;
 	_mix(3,3) = -1;
+	_mix(3,3) = -1;
+
 
 	Du_.setZero();
 	unity.setOne();
