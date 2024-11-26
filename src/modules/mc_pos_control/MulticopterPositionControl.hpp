@@ -101,6 +101,8 @@ public:
 	// ###################################################
 	bool flag = true;
 	matrix::Vector3f acc;
+	matrix::Vector3f _acc_sp;
+	matrix::Vector3f imu_angular_acc;
 	matrix::Vector3f acc_new;
 	matrix::Matrix<float, 4, 4> _mix; //_Mix is inverse of effectiveness matrix
 	matrix::Matrix<float, 4, 4> Du_; //Du_ is Inverse of Du
@@ -114,8 +116,21 @@ public:
 	matrix::Matrix<float, 3, 3> _R;
 	matrix::Matrix<float, 3, 3> _R_inv;
 	matrix::Vector3f _thr;
+	float Kp=1;
+	float Kq=1;
+	float Ix=0.029125;
+	float Iy=0.029125;
+	float Iz=0.055225;
 	float Pd;
 	float Qd;
+	float Pd_;
+	float Qd_;
+	float Pd_dot;
+	float Qd_dot;
+	float Tx_sp;
+	float Ty_sp;
+	float Txo_sp;
+	float Tyo_sp;
 	// ####################################################
 
 	// ##########################################################

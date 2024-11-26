@@ -503,181 +503,7 @@ void MulticopterPositionControl::Run()
 		}
 
 		PositionControlStates states{set_vehicle_states(vehicle_local_position, dt)};
-		// #############################################################################
 
-		matrix::Vector3f pos = states.position;
-		float low_point = 0.1; //height in m below which loe will be disabled
-		// std::cout<<"Pos"<<" "<<pos(0)<<" "<<pos(1)<<" "<<pos(2)<<"\n";
-
-
-		// acceleration set points
-
-		_rotation_matrix_sub.update(&_rotation_matrix_get);
-		_acc_setpoint(0,0) = states.acceleration(0);
-		_acc_setpoint(1,0) = states.acceleration(1);
-		_acc_setpoint(2,0) = states.acceleration(2);
-		_R(0,0) = _rotation_matrix_get.matrix[0];
-		_R(1,0) = _rotation_matrix_get.matrix[1];
-		_R(2,0) = _rotation_matrix_get.matrix[2];
-		_R(0,1) = _rotation_matrix_get.matrix[3];
-		_R(1,1) = _rotation_matrix_get.matrix[4];
-		_R(2,1) = _rotation_matrix_get.matrix[5];
-		_R(0,2) = _rotation_matrix_get.matrix[6];
-		_R(1,2) = _rotation_matrix_get.matrix[7];
-		_R(2,2) = _rotation_matrix_get.matrix[8];
-
-		_R_inv = calculateInverse(_R);
-		g(0,0) = 0;
-		g(1,0) = 0;
-		g(2,0) = 9.81;
-		_computed_thrust_sub.update(&_computed_thrust_get);
-
-
-		nd = _R_inv*((_acc_setpoint + g)/_computed_thrust_get.computed_thrust[2]);
-		nd *= 1.535;
-
-		_sensor_rpy_rate_sub.update(&_sensors_rpy_rate_get);
-
-		Pd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
-		Qd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
-		std::cout<<"Pd : "<<Pd<<" "<<"Qd: "<< Qd<<"\n";
-		// std::cout<<"Nd :\n";
-		// std::cout<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
-
-
-		// std::cout<<"R inv: \n";
-		// for (int i = 0; i < 3; i++) {
-   		//  for (int j = 0; j < 3; j++) {
-   		//      std::cout << _R_inv(i,j) << " ";
-   		//  }
-   		//  std::cout << std::endl;
-		// }
-		// std::cout<<"\n";
-
-		//Thrust
-		acc = _control._compute_thrust(states);
-		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
-
-
-		//Thrust
-		// _vehicle_acceleration_sub.update(&_vehicle_acceleration_get);
-		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
-
-		//Thrust
-		// acc_new = _control._compute_thrust_new(_vehicle_acceleration_get.xyz, states);
-		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
-
-		//Torques
-		_computed_torque_sub.update(&_computed_torque_get);
-		// std::cout<<_computed_torque_get.computed_torque[0]<<" "<<_computed_torque_get.computed_torque[1]<<" "<<_computed_torque_get.computed_torque[2]<<"\n";
-
-		//Takeoff Status
-		_takeoff_status_sub.update(&_takeoff_status_get);
-		// std::cout<<_takeoff_status_get.takeoff_state;
-
-		//Speed
-		_actuator_speed_sub.update(&_actuator_speed_get);
-		_vehicle_status_sub.update(&_vehicle_status_get);
-		// std::cout<<_actuator_speed_get.actuator_speed_sp[0]<<" "<<_actuator_speed_get.actuator_speed_sp[1]<<" "<<_actuator_speed_get.actuator_speed_sp[2]<<_actuator_speed_get.actuator_speed_sp[3]<<"\n";
-		if (_vehicle_status_get.takeoff_time > 0 && flag==true && pos(2)< -1 * low_point){
-			Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
-			Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
-			Du_(2,2) = math::min(1/_actuator_speed_get.actuator_speed_sp[2],100.0f);
-			Du_(3,3) = math::min(1/_actuator_speed_get.actuator_speed_sp[3],100.0f);
-
-			T(0,0) = _computed_torque_get.computed_torque[0];
-			T(1,0) = _computed_torque_get.computed_torque[1];
-			T(2,0) = _computed_torque_get.computed_torque[2];
-			T(3,0) = acc(2);
-
-			A_ = Du_*_mix;
-			loe = unity - A_*T;
-
-			loe(0,0) = math::min(loe(0,0),100.0f);
-			loe(1,0) = math::min(loe(1,0),100.0f);
-			loe(2,0) = math::min(loe(2,0),100.0f);
-			loe(3,0) = math::min(loe(3,0),100.0f);
-			// std::cout<<"Loss of Effectiveness Matrix\n";
-			// std::cout<<"Motor[0]: "<<loe(0,0)<<"\n";
-			// std::cout<<"Motor[1]: "<<loe(1,0)<<"\n";
-			// std::cout<<"Motor[2]: "<<loe(2,0)<<"\n";
-			// std::cout<<"Motor[3]: "<<loe(3,0)<<"\n\n";
-			if(loe(0,0) >= 0.9f){
-				std::cout<<"########### Motor [1] failed ###########\n";
-				motor_failed_s motor_failed{};
-				motor_failed.motor_failed = 1 ;
-				motor_failed.timestamp = hrt_absolute_time();
-				_motor_failed_pub.publish(motor_failed);
-				flag=false;
-			}
-			else if(loe(1,0) >= 0.9f){
-				std::cout<<"########### Motor [2] failed ###########\n";
-				motor_failed_s motor_failed{};
-				motor_failed.motor_failed = 2 ;
-				motor_failed.timestamp = hrt_absolute_time();
-				_motor_failed_pub.publish(motor_failed);
-				flag=false;
-			}
-			else if(loe(2,0) >= 0.9f){
-				std::cout<<"########### Motor [3] failed ###########\n";
-				motor_failed_s motor_failed{};
-				motor_failed.motor_failed = 3 ;
-				motor_failed.timestamp = hrt_absolute_time();
-				_motor_failed_pub.publish(motor_failed);
-				flag=false;
-			}
-			else if(loe(3,0) >= 0.9f){
-				std::cout<<"########### Motor [4] failed ###########\n";
-				motor_failed_s motor_failed{};
-				motor_failed.motor_failed = 4 ;
-				motor_failed.timestamp = hrt_absolute_time();
-				_motor_failed_pub.publish(motor_failed);
-				flag=false;
-			}
-		}
-		else{
-			loe(0,0) = 0.0f;
-			loe(1,0) = 0.0f;
-			loe(2,0) = 0.0f;
-			loe(3,0) = 0.0f;
-		}
-
-		loe_matrix_s loe_matrix{};
-
-		loe_matrix.timestamp = hrt_absolute_time();
-		loe_matrix.loe_matrix[0] = loe(0,0);
-		loe_matrix.loe_matrix[1] = loe(1,0);
-		loe_matrix.loe_matrix[2] = loe(2,0);
-		loe_matrix.loe_matrix[3] = loe(3,0);
-		_loe_matrix_pub.publish(loe_matrix);
-
-		// Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
-		// Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
-		// Du_(2,2) = math::min(1/_actuator_speed_get.actuator_speed_sp[2],100.0f);
-		// Du_(3,3) = math::min(1/_actuator_speed_get.actuator_speed_sp[3],100.0f);
-
-		// T(0,0) = _computed_torque_get.computed_torque[0];
-		// T(1,0) = _computed_torque_get.computed_torque[1];
-		// T(2,0) = _computed_torque_get.computed_torque[2];
-		// T(3,0) = acc(2);
-
-		// A_ = Du_*_mix;
-		// loe = unity - A_*T;
-
-		// loe(0,0) = math::min(loe(0,0),100.0f);
-		// loe(1,0) = math::min(loe(1,0),100.0f);
-		// loe(2,0) = math::min(loe(2,0),100.0f);
-		// loe(3,0) = math::min(loe(3,0),100.0f);
-
-		// A_ = Du_*_mix;
-		// loe = unity - A_*T;
-
-		// loe(0,0) = math::min(loe(0,0),100.0f);
-		// loe(1,0) = math::min(loe(1,0),100.0f);
-		// loe(2,0) = math::min(loe(2,0),100.0f);
-		// loe(3,0) = math::min(loe(3,0),100.0f);
-
-		// ################################################################################
 		// if a goto setpoint available this publishes a trajectory setpoint to go there
 		if (_goto_control.checkForSetpoint(vehicle_local_position.timestamp_sample,
 						   _vehicle_control_mode.flag_multicopter_position_control_enabled)) {
@@ -858,6 +684,205 @@ void MulticopterPositionControl::Run()
 			_takeoff_status_pub.get().timestamp = hrt_absolute_time();
 			_takeoff_status_pub.update();
 		}
+
+		// #############################################################################################################################################
+			//  SUBSCRIPTION UPDATES
+				// Torques
+		_computed_torque_sub.update(&_computed_torque_get);
+
+				//Thrust
+		acc = _control._compute_thrust(states);
+
+				//Takeoff Status
+		_takeoff_status_sub.update(&_takeoff_status_get);
+		_computed_thrust_sub.update(&_computed_thrust_get);
+		_sensor_rpy_rate_sub.update(&_sensors_rpy_rate_get);
+
+				//Speed
+		_actuator_speed_sub.update(&_actuator_speed_get);
+		_vehicle_status_sub.update(&_vehicle_status_get);
+
+		matrix::Vector3f pos = states.position;
+		float low_point = 0.1; //height in m below which loe will be disabled
+		// std::cout<<"Pos"<<" "<<pos(0)<<" "<<pos(1)<<" "<<pos(2)<<"\n";
+
+		imu_angular_acc(0) = _computed_torque_get.computed_torque[0] / Ix;
+		imu_angular_acc(1) = _computed_torque_get.computed_torque[1] / Iy;
+		imu_angular_acc(2) = _computed_torque_get.computed_torque[2] / Iz;
+
+		// acceleration set points
+		_rotation_matrix_sub.update(&_rotation_matrix_get);
+		_acc_sp = Vector3f(_setpoint.acceleration);
+		_acc_setpoint(0,0) = _acc_sp(0);
+		_acc_setpoint(1,0) = _acc_sp(1);
+		_acc_setpoint(2,0) = _acc_sp(2);
+		_R(0,0) = _rotation_matrix_get.matrix[0];
+		_R(1,0) = _rotation_matrix_get.matrix[1];
+		_R(2,0) = _rotation_matrix_get.matrix[2];
+		_R(0,1) = _rotation_matrix_get.matrix[3];
+		_R(1,1) = _rotation_matrix_get.matrix[4];
+		_R(2,1) = _rotation_matrix_get.matrix[5];
+		_R(0,2) = _rotation_matrix_get.matrix[6];
+		_R(1,2) = _rotation_matrix_get.matrix[7];
+		_R(2,2) = _rotation_matrix_get.matrix[8];
+
+
+		_R_inv = calculateInverse(_R);
+		g(0,0) = 0;
+		g(1,0) = 0;
+		g(2,0) = 9.81;
+
+
+		nd = _R_inv*((_acc_setpoint + g)/_computed_thrust_get.computed_thrust[2]);
+		nd *= 1.535;
+
+
+		Pd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
+		Qd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
+
+		Pd_dot = Kp*(Pd - Pd_)/dt;
+		Qd_dot = Kq*(Qd - Qd_)/dt;
+
+		Tx_sp = Txo_sp + Ix*(Pd_dot-imu_angular_acc(0));
+		Ty_sp = Tyo_sp + Iy*(Qd_dot-imu_angular_acc(1));
+		std::cout<<"Tx_sp : "<<Tx_sp<<" "<<"Ty_sp : "<<Ty_sp<<"\n";
+
+		// Check if more than 100 ms (100,000 microseconds) has passed
+		// if ((current_time_us - _last_action_time_us) > 100000) {
+
+			// PX4_INFO("100 ms has passed; performing action.");
+
+
+		Pd_ = Pd;
+		Qd_ = Qd;
+		// }
+
+		// std::cout<<"Nd :\n";
+		// std::cout<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
+
+
+		// std::cout<<"R inv: \n";
+		// for (int i = 0; i < 3; i++) {
+		//  for (int j = 0; j < 3; j++) {
+		//      std::cout << _R_inv(i,j) << " ";
+		//  }
+		//  std::cout << std::endl;
+		// }
+		// std::cout<<"\n";
+
+		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
+
+
+		//Thrust
+		// _vehicle_acceleration_sub.update(&_vehicle_acceleration_get);
+		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
+
+		//Thrust
+		// acc_new = _control._compute_thrust_new(_vehicle_acceleration_get.xyz, states);
+		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
+
+		// std::cout<<_computed_torque_get.computed_torque[0]<<" "<<_computed_torque_get.computed_torque[1]<<" "<<_computed_torque_get.computed_torque[2]<<"\n";
+
+		// std::cout<<_actuator_speed_get.actuator_speed_sp[0]<<" "<<_actuator_speed_get.actuator_speed_sp[1]<<" "<<_actuator_speed_get.actuator_speed_sp[2]<<_actuator_speed_get.actuator_speed_sp[3]<<"\n";
+		if (_vehicle_status_get.takeoff_time > 0 && flag==true && pos(2)< -1 * low_point){
+			Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
+			Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
+			Du_(2,2) = math::min(1/_actuator_speed_get.actuator_speed_sp[2],100.0f);
+			Du_(3,3) = math::min(1/_actuator_speed_get.actuator_speed_sp[3],100.0f);
+
+			T(0,0) = _computed_torque_get.computed_torque[0];
+			T(1,0) = _computed_torque_get.computed_torque[1];
+			T(2,0) = _computed_torque_get.computed_torque[2];
+			T(3,0) = acc(2);
+
+			A_ = Du_*_mix;
+			loe = unity - A_*T;
+
+			loe(0,0) = math::min(loe(0,0),100.0f);
+			loe(1,0) = math::min(loe(1,0),100.0f);
+			loe(2,0) = math::min(loe(2,0),100.0f);
+			loe(3,0) = math::min(loe(3,0),100.0f);
+			// std::cout<<"Loss of Effectiveness Matrix\n";
+			// std::cout<<"Motor[0]: "<<loe(0,0)<<"\n";
+			// std::cout<<"Motor[1]: "<<loe(1,0)<<"\n";
+			// std::cout<<"Motor[2]: "<<loe(2,0)<<"\n";
+			// std::cout<<"Motor[3]: "<<loe(3,0)<<"\n\n";
+			if(loe(0,0) >= 0.9f){
+				std::cout<<"########### Motor [1] failed ###########\n";
+				motor_failed_s motor_failed{};
+				motor_failed.motor_failed = 1 ;
+				motor_failed.timestamp = hrt_absolute_time();
+				_motor_failed_pub.publish(motor_failed);
+				flag=false;
+			}
+			else if(loe(1,0) >= 0.9f){
+				std::cout<<"########### Motor [2] failed ###########\n";
+				motor_failed_s motor_failed{};
+				motor_failed.motor_failed = 2 ;
+				motor_failed.timestamp = hrt_absolute_time();
+				_motor_failed_pub.publish(motor_failed);
+				flag=false;
+			}
+			else if(loe(2,0) >= 0.9f){
+				std::cout<<"########### Motor [3] failed ###########\n";
+				motor_failed_s motor_failed{};
+				motor_failed.motor_failed = 3 ;
+				motor_failed.timestamp = hrt_absolute_time();
+				_motor_failed_pub.publish(motor_failed);
+				flag=false;
+			}
+			else if(loe(3,0) >= 0.9f){
+				std::cout<<"########### Motor [4] failed ###########\n";
+				motor_failed_s motor_failed{};
+				motor_failed.motor_failed = 4 ;
+				motor_failed.timestamp = hrt_absolute_time();
+				_motor_failed_pub.publish(motor_failed);
+				flag=false;
+			}
+		}
+		else{
+			loe(0,0) = 0.0f;
+			loe(1,0) = 0.0f;
+			loe(2,0) = 0.0f;
+			loe(3,0) = 0.0f;
+		}
+
+		loe_matrix_s loe_matrix{};
+
+		loe_matrix.timestamp = hrt_absolute_time();
+		loe_matrix.loe_matrix[0] = loe(0,0);
+		loe_matrix.loe_matrix[1] = loe(1,0);
+		loe_matrix.loe_matrix[2] = loe(2,0);
+		loe_matrix.loe_matrix[3] = loe(3,0);
+		_loe_matrix_pub.publish(loe_matrix);
+
+		// Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
+		// Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
+		// Du_(2,2) = math::min(1/_actuator_speed_get.actuator_speed_sp[2],100.0f);
+		// Du_(3,3) = math::min(1/_actuator_speed_get.actuator_speed_sp[3],100.0f);
+
+		// T(0,0) = _computed_torque_get.computed_torque[0];
+		// T(1,0) = _computed_torque_get.computed_torque[1];
+		// T(2,0) = _computed_torque_get.computed_torque[2];
+		// T(3,0) = acc(2);
+
+		// A_ = Du_*_mix;
+		// loe = unity - A_*T;
+
+		// loe(0,0) = math::min(loe(0,0),100.0f);
+		// loe(1,0) = math::min(loe(1,0),100.0f);
+		// loe(2,0) = math::min(loe(2,0),100.0f);
+		// loe(3,0) = math::min(loe(3,0),100.0f);
+
+		// A_ = Du_*_mix;
+		// loe = unity - A_*T;
+
+		// loe(0,0) = math::min(loe(0,0),100.0f);
+		// loe(1,0) = math::min(loe(1,0),100.0f);
+		// loe(2,0) = math::min(loe(2,0),100.0f);
+		// loe(3,0) = math::min(loe(3,0),100.0f);
+
+		// ###########################################################################################
 	}
 
 	perf_end(_cycle_perf);
