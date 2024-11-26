@@ -577,5 +577,10 @@
       <accelerometerBiasCorrelationTime>300.0</accelerometerBiasCorrelationTime>
       <accelerometerTurnOnBiasSigma>0.196</accelerometerTurnOnBiasSigma>
     </plugin>
+    <plugin name="motor_failure" filename="libgazebo_motor_failure_plugin.so"> 
+      <robotNamespace/> 
+      <ROSMotorNumSubTopic>/motor_failure/motor_number</ROSMotorNumSubTopic> 
+      <MotorFailureNumPubTopic>/gazebo/motor_failure_num</MotorFailureNumPubTopic> 
+    </plugin>
   </model>
 </sdf>
