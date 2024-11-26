@@ -407,6 +407,52 @@ PositionControlStates MulticopterPositionControl::set_vehicle_states(const vehic
 	return states;
 }
 
+//################################################################################################
+matrix::Matrix<float, 3, 3> calculateInverse(const matrix::Matrix<float, 3, 3>& R) {
+    matrix::Matrix<float, 3, 3> inv;
+
+
+    float a11 = R(0,0), a12 = R(0,1), a13 = R(0,2);
+    float a21 = R(1,0), a22 = R(1,1), a23 = R(1,2);
+    float a31 = R(2,0), a32 = R(2,1), a33 = R(2,2);
+
+    // Calculate cofactors
+    float c11 = a22*a33 - a23*a32;
+    float c12 = -(a21*a33 - a23*a31);
+    float c13 = a21*a32 - a22*a31;
+    float c21 = -(a12*a33 - a13*a32);
+    float c22 = a11*a33 - a13*a31;
+    float c23 = -(a11*a32 - a12*a31);
+    float c31 = a12*a23 - a13*a22;
+    float c32 = -(a11*a23 - a13*a21);
+    float c33 = a11*a22 - a12*a21;
+
+    // Calculate determinant
+    float det = a11*c11 + a12*c12 + a13*c13;
+
+    // Check if matrix is invertible
+    if (std::abs(det) < 1e-6f) {
+        // Handle singular matrix case
+        // You might want to throw an exception or handle it differently
+        return matrix::Matrix<float, 3, 3>(); // Returns zero matrix
+    }
+
+    // Calculate inverse by dividing adjugate matrix by determinant
+    float invDet = 1.0f / det;
+
+    inv(0,0) = c11 * invDet;
+    inv(0,1) = c21 * invDet;
+    inv(0,2) = c31 * invDet;
+    inv(1,0) = c12 * invDet;
+    inv(1,1) = c22 * invDet;
+    inv(1,2) = c32 * invDet;
+    inv(2,0) = c13 * invDet;
+    inv(2,1) = c23 * invDet;
+    inv(2,2) = c33 * invDet;
+
+    return inv;
+}
+//#######################################################################################################################
 void MulticopterPositionControl::Run()
 {
 	if (should_exit()) {
@@ -463,6 +509,51 @@ void MulticopterPositionControl::Run()
 		float low_point = 0.1; //height in m below which loe will be disabled
 		// std::cout<<"Pos"<<" "<<pos(0)<<" "<<pos(1)<<" "<<pos(2)<<"\n";
 
+
+		// acceleration set points
+
+		_rotation_matrix_sub.update(&_rotation_matrix_get);
+		_acc_setpoint(0,0) = states.acceleration(0);
+		_acc_setpoint(1,0) = states.acceleration(1);
+		_acc_setpoint(2,0) = states.acceleration(2);
+		_R(0,0) = _rotation_matrix_get.matrix[0];
+		_R(1,0) = _rotation_matrix_get.matrix[1];
+		_R(2,0) = _rotation_matrix_get.matrix[2];
+		_R(0,1) = _rotation_matrix_get.matrix[3];
+		_R(1,1) = _rotation_matrix_get.matrix[4];
+		_R(2,1) = _rotation_matrix_get.matrix[5];
+		_R(0,2) = _rotation_matrix_get.matrix[6];
+		_R(1,2) = _rotation_matrix_get.matrix[7];
+		_R(2,2) = _rotation_matrix_get.matrix[8];
+
+		_R_inv = calculateInverse(_R);
+		g(0,0) = 0;
+		g(1,0) = 0;
+		g(2,0) = 9.81;
+		_computed_thrust_sub.update(&_computed_thrust_get);
+
+
+		nd = _R_inv*((_acc_setpoint + g)/_computed_thrust_get.computed_thrust[2]);
+		nd *= 1.535;
+
+		_sensor_rpy_rate_sub.update(&_sensors_rpy_rate_get);
+
+		Pd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
+		Qd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
+		std::cout<<"Pd : "<<Pd<<" "<<"Qd: "<< Qd<<"\n";
+		// std::cout<<"Nd :\n";
+		// std::cout<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
+
+
+		// std::cout<<"R inv: \n";
+		// for (int i = 0; i < 3; i++) {
+   		//  for (int j = 0; j < 3; j++) {
+   		//      std::cout << _R_inv(i,j) << " ";
+   		//  }
+   		//  std::cout << std::endl;
+		// }
+		// std::cout<<"\n";
+
 		//Thrust
 		acc = _control._compute_thrust(states);
 		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
@@ -506,11 +597,11 @@ void MulticopterPositionControl::Run()
 			loe(1,0) = math::min(loe(1,0),100.0f);
 			loe(2,0) = math::min(loe(2,0),100.0f);
 			loe(3,0) = math::min(loe(3,0),100.0f);
-			std::cout<<"Loss of Effectiveness Matrix\n";
-			std::cout<<"Motor[0]: "<<loe(0,0)<<"\n";
-			std::cout<<"Motor[1]: "<<loe(1,0)<<"\n";
-			std::cout<<"Motor[2]: "<<loe(2,0)<<"\n";
-			std::cout<<"Motor[3]: "<<loe(3,0)<<"\n\n";
+			// std::cout<<"Loss of Effectiveness Matrix\n";
+			// std::cout<<"Motor[0]: "<<loe(0,0)<<"\n";
+			// std::cout<<"Motor[1]: "<<loe(1,0)<<"\n";
+			// std::cout<<"Motor[2]: "<<loe(2,0)<<"\n";
+			// std::cout<<"Motor[3]: "<<loe(3,0)<<"\n\n";
 			if(loe(0,0) >= 0.9f){
 				std::cout<<"########### Motor [1] failed ###########\n";
 				motor_failed_s motor_failed{};

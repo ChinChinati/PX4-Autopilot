@@ -211,6 +211,7 @@ private:
 
 	// ###########################################
 	uORB::Publication<computed_thrust_s> _computed_thrust_pub{ORB_ID(computed_thrust)};
+
 	// ###########################################
 
 	// Gains

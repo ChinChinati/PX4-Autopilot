@@ -37,6 +37,7 @@ cmake_policy(SET CMP0057 NEW)
 include(px4_list_make_absolute)
 
 set(msg_files
+	SensorsRpyRate.msg
 	ActionRequest.msg
 	ActuatorArmed.msg
 	ActuatorControlsStatus.msg
@@ -189,6 +190,7 @@ set(msg_files
 	RcParameterMap.msg
 	RegisterExtComponentReply.msg
 	RegisterExtComponentRequest.msg
+	RotationMatrix.msg
 	RoverAckermannGuidanceStatus.msg
 	RoverAckermannSetpoint.msg
 	RoverAckermannStatus.msg

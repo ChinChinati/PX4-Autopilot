@@ -50,6 +50,8 @@
 
 #include <matrix/matrix/math.hpp>
 #include <mathlib/math/Limits.hpp>
+#include <uORB/topics/rotation_matrix.h>
+#include <uORB/Publication.hpp>
 
 class AttitudeControl
 {
@@ -98,7 +100,7 @@ public:
 	 * @param q estimation of the current vehicle attitude unit quaternion
 	 * @return [rad/s] body frame 3D angular rate setpoint vector to be executed by the rate controller
 	 */
-	matrix::Vector3f update(const matrix::Quatf &q) const;
+	matrix::Vector3f update(const matrix::Quatf &q) ;
 
 private:
 	matrix::Vector3f _proportional_gain;
@@ -107,4 +109,8 @@ private:
 
 	matrix::Quatf _attitude_setpoint_q; ///< latest known attitude setpoint e.g. from position control
 	float _yawspeed_setpoint{0.f}; ///< latest known yawspeed feed-forward setpoint
+
+	//################################################################################################################
+	uORB::Publication<rotation_matrix_s> _rotation_matrix_pub{ORB_ID(rotation_matrix)};
+	//################################################################################################################
 };

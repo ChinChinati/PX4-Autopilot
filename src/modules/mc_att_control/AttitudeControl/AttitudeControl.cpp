@@ -36,7 +36,7 @@
  */
 
 #include <AttitudeControl.hpp>
-
+#include <iostream>
 #include <mathlib/math/Functions.hpp>
 
 using namespace matrix;
@@ -52,9 +52,55 @@ void AttitudeControl::setProportionalGain(const matrix::Vector3f &proportional_g
 	}
 }
 
-matrix::Vector3f AttitudeControl::update(const Quatf &q) const
+//###################################################################################
+// Function to convert a quaternion to a rotation matrix
+Matrix3f quaternion_to_rotation_matrix(const Quaternion<float>& q)
+{
+    Matrix3f R;
+    // Calculate the rotation matrix from the quaternion q
+    // Formula for quaternion to rotation matrix
+    R(0, 0) = 1 - 2 * (q(1) * q(1) + q(2) * q(2));
+    R(0, 1) = 2 * (q(0) * q(1) - q(3) * q(2));
+    R(0, 2) = 2 * (q(0) * q(2) + q(3) * q(1));
+    R(1, 0) = 2 * (q(0) * q(1) + q(3) * q(2));
+    R(1, 1) = 1 - 2 * (q(0) * q(0) + q(2) * q(2));
+    R(1, 2) = 2 * (q(1) * q(2) - q(3) * q(0));
+    R(2, 0) = 2 * (q(0) * q(2) - q(3) * q(1));
+    R(2, 1) = 2 * (q(1) * q(2) + q(3) * q(0));
+    R(2, 2) = 1 - 2 * (q(0) * q(0) + q(1) * q(1));
+    return R;
+}
+//######################################################################################
+
+matrix::Vector3f AttitudeControl::update(const Quatf &q)
 {
 	Quatf qd = _attitude_setpoint_q;
+
+	//####################################################################
+	Matrix3f R = quaternion_to_rotation_matrix(q);
+	// std::cout << "Rotation Matrix R: \n";
+	// for (int i = 0; i < 3; i++) {
+	//     for (int j = 0; j < 3; j++) {
+	//         std::cout << R(i, j) << " ";
+	//     }
+	//     std::cout << std::endl;
+	// }
+	// std::cout<< "\n";
+
+	rotation_matrix_s rotation_matrix{};
+	rotation_matrix.timestamp = hrt_absolute_time();
+	rotation_matrix.matrix[0] = R(0, 0);
+	rotation_matrix.matrix[1] = R(0, 1);
+	rotation_matrix.matrix[2] = R(0, 2);
+	rotation_matrix.matrix[3] = R(1, 0);
+	rotation_matrix.matrix[4] = R(1, 1);
+	rotation_matrix.matrix[5] = R(1, 2);
+	rotation_matrix.matrix[6] = R(2, 0);
+	rotation_matrix.matrix[7] = R(2, 1);
+	rotation_matrix.matrix[8] = R(2, 2);
+	_rotation_matrix_pub.publish(rotation_matrix);
+
+	//################################################################################################################
 
 	// calculate reduced desired attitude neglecting vehicle's yaw to prioritize roll and pitch
 	const Vector3f e_z = q.dcm_z();

@@ -11,7 +11,6 @@ git clone -b 0.3.1 --single-branch --depth 1 https://github.com/PX4/avoidance.gi
 catkin init
 catkin build local_planner safe_landing_planner --cmake-args -DCMAKE_BUILD_TYPE=Release
 
-source ${PX4_SRC_DIR}/catkin_ws/devel/setup.bash
 source /usr/share/gazebo/setup.sh
 
 export CATKIN_SETUP_UTIL_ARGS=--extend

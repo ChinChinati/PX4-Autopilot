@@ -74,6 +74,9 @@
 #include <uORB/topics/loe_matrix.h>
 #include <uORB/topics/motor_failed.h>
 #include <uORB/topics/vehicle_status.h>
+#include <uORB/topics/rotation_matrix.h>
+#include <uORB/topics/sensors_rpy_rate.h>
+
 
 using namespace time_literals;
 
@@ -105,6 +108,14 @@ public:
 	matrix::Matrix<float, 4, 1> unity; //[ 1 1 1 1]^T
 	matrix::Matrix<float, 4, 1> T; //T
 	matrix::Matrix<float, 4, 1> loe; //[ l1 l2 l3 l4]^T
+	matrix::Matrix<float, 3, 1> nd; // nx, ny, nz
+	matrix::Matrix<float, 3, 1> _acc_setpoint;
+	matrix::Matrix<float, 3, 1> g;
+	matrix::Matrix<float, 3, 3> _R;
+	matrix::Matrix<float, 3, 3> _R_inv;
+	matrix::Vector3f _thr;
+	float Pd;
+	float Qd;
 	// ####################################################
 
 	// ##########################################################
@@ -144,6 +155,12 @@ private:
 	uORB::Subscription _vehicle_acceleration_sub{ORB_ID(vehicle_acceleration)};
 	uORB::Subscription _takeoff_status_sub{ORB_ID(takeoff_status)};
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
+	uORB::Subscription _rotation_matrix_sub{ORB_ID(rotation_matrix)};
+	uORB::Subscription _computed_thrust_sub{ORB_ID(computed_thrust)};
+	uORB::Subscription _sensor_rpy_rate_sub{ORB_ID(sensors_rpy_rate)};
+
+
+
 	//######################################################
 
 	hrt_abstime _time_stamp_last_loop{0};		/**< time stamp of last loop iteration */
@@ -151,6 +168,9 @@ private:
 
 	trajectory_setpoint_s _setpoint{PositionControl::empty_trajectory_setpoint};
 	vehicle_control_mode_s _vehicle_control_mode{};
+
+
+
 
 	vehicle_constraints_s _vehicle_constraints {
 		.timestamp = 0,
@@ -167,9 +187,19 @@ private:
 		.landed = true,
 	};
 	// #########################################################
+	sensors_rpy_rate_s _sensors_rpy_rate_get{
+		.timestamp = 0,
+		.rpy_rate = {0.0,0.0,0.0},
+	};
+
 	computed_torque_s _computed_torque_get {
 		.timestamp = 0,
 		.computed_torque = {0.0,0.0,0.0},
+	};
+
+	computed_thrust_s _computed_thrust_get {
+		.timestamp = 0,
+		.computed_thrust = {0.0,0.0,0.0},
 	};
 
 	actuator_speed_s _actuator_speed_get {
@@ -190,6 +220,10 @@ private:
 
 	vehicle_status_s _vehicle_status_get{
 		.takeoff_time = 0,
+	};
+	rotation_matrix_s _rotation_matrix_get {
+		.timestamp = 0,
+		.matrix = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,},
 	};
 	// #########################################################
 

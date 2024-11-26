@@ -45,6 +45,7 @@
 #include <uORB/topics/rate_ctrl_status.h>
 #include <uORB/topics/computed_torque.h>
 #include <uORB/Publication.hpp>
+#include<uORB/topics/sensors_rpy_rate.h>
 
 
 class RateControl
@@ -128,6 +129,7 @@ private:
 
 	// ##########################################################
 	uORB::Publication<computed_torque_s> _computed_torque_pub{ORB_ID(computed_torque)};
+	uORB::Publication<sensors_rpy_rate_s> _sensor_rpy_rate_pub{ORB_ID(sensors_rpy_rate)};
 	// ##########################################################
 
 	// Gains

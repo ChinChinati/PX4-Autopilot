@@ -71,6 +71,12 @@ void RateControl::setNegativeSaturationFlag(size_t axis, bool is_saturated)
 Vector3f RateControl::update(const Vector3f &rate, const Vector3f &rate_sp, const Vector3f &angular_accel,
 			     const float dt, const bool landed)
 {
+	sensors_rpy_rate_s sensors_rpy_rate{};
+	sensors_rpy_rate.timestamp = hrt_absolute_time();
+
+	rate.copyTo(sensors_rpy_rate.rpy_rate);
+	_sensor_rpy_rate_pub.publish(sensors_rpy_rate);
+
 	// angular rates error
 	Vector3f rate_error = rate_sp - rate;
 

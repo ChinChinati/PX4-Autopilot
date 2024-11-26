@@ -274,6 +274,9 @@ matrix::Vector3f PositionControl::_compute_thrust_new(float states[3], PositionC
 	// _thr_sp_1 -= _thr_sp;
 	return _thr;
 }
+
+
+
 // #####################################################################
 
 
