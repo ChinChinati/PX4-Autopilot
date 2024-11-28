@@ -95,6 +95,7 @@ bool MulticopterPositionControl::init()
 	_mix(3,3) = -1;
 
 
+
 	Du_.setZero();
 	unity.setOne();
 
@@ -745,7 +746,7 @@ void MulticopterPositionControl::Run()
 
 		Tx_sp = Txo_sp + Ix*(Pd_dot-imu_angular_acc(0));
 		Ty_sp = Tyo_sp + Iy*(Qd_dot-imu_angular_acc(1));
-		std::cout<<"Tx_sp : "<<Tx_sp<<" "<<"Ty_sp : "<<Ty_sp<<"\n";
+		// std::cout<<"Tx_sp : "<<Tx_sp<<" "<<"Ty_sp : "<<Ty_sp<<"\n";
 
 		// Check if more than 100 ms (100,000 microseconds) has passed
 		// if ((current_time_us - _last_action_time_us) > 100000) {
