@@ -747,6 +747,11 @@ void MulticopterPositionControl::Run()
 		Ty_sp = Tyo_sp + Iy*(Qd_dot-imu_angular_acc(1));
 		std::cout<<"Tx_sp : "<<Tx_sp<<" "<<"Ty_sp : "<<Ty_sp<<"\n";
 
+		vehicle_torque_s vehicle_torque{};
+		vehicle_torque.timestamp = hrt_absolute_time();
+		vehicle_torque.tx= Tx_sp;
+		vehicle_torque.ty= Ty_sp;
+		_vehicle_torque_pub.publish(vehicle_torque);
 		// Check if more than 100 ms (100,000 microseconds) has passed
 		// if ((current_time_us - _last_action_time_us) > 100000) {
 

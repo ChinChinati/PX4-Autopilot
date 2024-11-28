@@ -49,19 +49,52 @@ ControlAllocationSequentialDesaturation::allocate()
 
 	_prev_actuator_sp = _actuator_sp;
 
-	switch (_param_mc_airmode.get()) {
-	case 1:
-		mixAirmodeRP();
-		break;
+	// ####################################
 
-	case 2:
-		mixAirmodeRPY();
-		break;
+	_motor_failed_sub.update(&_motor_failed_get);
 
-	default:
-		mixAirmodeDisabled();
-		break;
+	if( _motor_failed_get.motor_failed == 0){
+		switch (_param_mc_airmode.get()) {
+		case 1:
+			mixAirmodeRP();
+			break;
+
+		case 2:
+			mixAirmodeRPY();
+			break;
+
+		default:
+			mixAirmodeDisabled();
+			break;
+		}
 	}
+	else if( _motor_failed_get.motor_failed == 1){
+		motor_failed_1();
+	}
+	else if( _motor_failed_get.motor_failed == 2){
+		motor_failed_2();
+	}
+	else if( _motor_failed_get.motor_failed == 3){
+		motor_failed_3();
+	}
+	else if( _motor_failed_get.motor_failed == 4){
+		motor_failed_4();
+	}
+	// ####################################
+
+	// switch (_param_mc_airmode.get()) {
+	// case 1:
+	// 	mixAirmodeRP();
+	// 	break;
+
+	// case 2:
+	// 	mixAirmodeRPY();
+	// 	break;
+
+	// default:
+	// 	mixAirmodeDisabled();
+	// 	break;
+	// }
 }
 
 void ControlAllocationSequentialDesaturation::desaturateActuators(
@@ -243,6 +276,68 @@ ControlAllocationSequentialDesaturation::mixYaw()
 	// reduce thrust only
 	desaturateActuators(_actuator_sp, thrust_z, true);
 }
+
+// ###################################################
+void
+ControlAllocationSequentialDesaturation::motor_failed_1(){
+	matrix::Matrix<float, 3, 3> _mix_updated;
+	_mix_updated(0,0) = 0.707107;
+	_mix_updated(1,0) = -0.707107;
+	_mix_updated(2,0) = 0.707107;
+	_mix_updated(0,1) = 0.765306;
+	_mix_updated(1,1) = 1;
+	_mix_updated(2,1) = -0.765306;
+	_mix_updated(0,2) = -1;
+	_mix_updated(1,2) = -1;
+	_mix_updated(2,2) = -1;
+
+}
+
+void
+ControlAllocationSequentialDesaturation::motor_failed_2(){
+	matrix::Matrix<float, 3, 3> _mix_updated;
+	_mix_updated(0,0) = -0.495384;
+	_mix_updated(1,0) = 0.495384;
+	_mix_updated(2,0) = 0.495384;
+	_mix_updated(0,1) = 0.765306;
+	_mix_updated(1,1) = 1;
+	_mix_updated(2,1) = -0.765306;
+	_mix_updated(0,2) = -1;
+	_mix_updated(1,2) = -1;
+	_mix_updated(2,2) = -1;
+
+}
+
+void
+ControlAllocationSequentialDesaturation::motor_failed_3(){
+	matrix::Matrix<float, 3, 3> _mix_updated;
+	_mix_updated(0,0) = -0.495384;
+	_mix_updated(1,0) = 0.495384;
+	_mix_updated(2,0) = 0.495384;
+	_mix_updated(0,1) = 0.707107;
+	_mix_updated(1,1) = -0.707107;
+	_mix_updated(2,1) = 0.707107;
+	_mix_updated(0,2) = -1;
+	_mix_updated(1,2) = -1;
+	_mix_updated(2,2) = -1;
+
+}
+
+void
+ControlAllocationSequentialDesaturation::motor_failed_4(){
+	matrix::Matrix<float, 3, 3> _mix_updated;
+	_mix_updated(0,0) = -0.495384;
+	_mix_updated(1,0) = 0.495384;
+	_mix_updated(2,0) = 0.495384;
+	_mix_updated(0,1) = 0.707107;
+	_mix_updated(1,1) = -0.707107;
+	_mix_updated(2,1) = 0.707107;
+	_mix_updated(0,2) = 0.765306;
+	_mix_updated(1,2) = 1;
+	_mix_updated(2,2) = -0.765306;
+
+}
+// ###################################################
 
 void
 ControlAllocationSequentialDesaturation::updateParameters()

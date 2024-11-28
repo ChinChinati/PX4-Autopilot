@@ -76,6 +76,7 @@
 #include <uORB/topics/vehicle_status.h>
 #include <uORB/topics/rotation_matrix.h>
 #include <uORB/topics/sensors_rpy_rate.h>
+#include <uORB/topics/vehicle_torque.h>
 
 
 using namespace time_literals;
@@ -152,6 +153,7 @@ private:
 	// ##################################################
 	uORB::Publication<loe_matrix_s> _loe_matrix_pub{ORB_ID(loe_matrix)};
 	uORB::Publication<motor_failed_s> _motor_failed_pub{ORB_ID(motor_failed)};
+	uORB::Publication<vehicle_torque_s> _vehicle_torque_pub{ORB_ID(vehicle_torque)};
 	// ##################################################
 
 	uORB::SubscriptionCallbackWorkItem _local_pos_sub{this, ORB_ID(vehicle_local_position)};	/**< vehicle local position */

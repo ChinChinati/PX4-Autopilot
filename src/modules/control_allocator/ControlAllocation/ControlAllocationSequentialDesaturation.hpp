@@ -46,7 +46,12 @@
 #include "ControlAllocationPseudoInverse.hpp"
 #include <uORB/topics/actuator_speed.h>
 #include <uORB/Publication.hpp>
+#include <uORB/Subscription.hpp>
+#include <uORB/SubscriptionCallback.hpp>
 #include <px4_platform_common/module_params.h>
+#include <uORB/topics/motor_failed.h>
+#include <uORB/topics/vehicle_thrust.h>
+#include <uORB/topics/vehicle_torque.h>
 
 class ControlAllocationSequentialDesaturation: public ControlAllocationPseudoInverse, public ModuleParams
 {
@@ -60,6 +65,31 @@ public:
 	void updateParameters() override;
 private:
 	uORB::Publication<actuator_speed_s> _actuator_speed_pub{ORB_ID(actuator_speed)};
+
+	// #######################################
+
+	uORB::Subscription _motor_failed_sub{ORB_ID(motor_failed)};
+
+	motor_failed_s _motor_failed_get {
+		.timestamp = 0,
+		.motor_failed = 0,
+	};
+
+	uORB::Subscription _vehicle_thrust_sub{ORB_ID(vehicle_thrust)};
+
+	vehicle_thrust_s _vehicle_thrust_get {
+		.timestamp = 0,
+		.xyz = {0.0,0.0,0.0},
+	};
+
+	uORB::Subscription _vehicle_torque_sub{ORB_ID(vehicle_torque)};
+
+	vehicle_torque_s _vehicle_torque_get {
+		.timestamp = 0,
+		.tx = 0.0,
+		.ty = 0.0,
+	};
+	// #######################################
 
 	/**
 	 * Minimize the saturation of the actuators by adding or substracting a fraction of desaturation_vector.
@@ -123,6 +153,15 @@ private:
 	 * but yaw is decreased as much as required.
 	 */
 	void mixYaw();
+
+	// #######################################
+
+	void motor_failed_1();
+	void motor_failed_2();
+	void motor_failed_3();
+	void motor_failed_4();
+
+	// #######################################
 
 	DEFINE_PARAMETERS(
 		(ParamInt<px4::params::MC_AIRMODE>) _param_mc_airmode   ///< air-mode
