@@ -219,6 +219,10 @@ void PositionControl::_accelerationControl()
 	const float cos_ned_body = (Vector3f(0, 0, 1).dot(body_z));
 	const float collective_thrust = math::min(thrust_ned_z / cos_ned_body, -_lim_thr_min);
 	_thr_sp = body_z * collective_thrust;
+	vehicle_thrust_s vehicle_thrust{};
+	_thr_sp.copyTo(vehicle_thrust.xyz);
+	vehicle_thrust.timestamp = hrt_absolute_time();
+	_vehicle_thrust_pub.publish(vehicle_thrust);
 }
 
 // ###########################################################

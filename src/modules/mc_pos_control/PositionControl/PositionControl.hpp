@@ -45,6 +45,7 @@
 #include <uORB/topics/vehicle_attitude_setpoint.h>
 #include <uORB/topics/vehicle_local_position_setpoint.h>
 #include <uORB/topics/computed_thrust.h>
+#include <uORB/topics/vehicle_thrust.h>
 #include <uORB/Publication.hpp>
 
 struct PositionControlStates {
@@ -211,7 +212,7 @@ private:
 
 	// ###########################################
 	uORB::Publication<computed_thrust_s> _computed_thrust_pub{ORB_ID(computed_thrust)};
-
+	uORB::Publication<vehicle_thrust_s> _vehicle_thrust_pub{ORB_ID(vehicle_thrust)};
 	// ###########################################
 
 	// Gains
