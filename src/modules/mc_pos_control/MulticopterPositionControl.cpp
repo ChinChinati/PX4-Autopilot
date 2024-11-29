@@ -693,6 +693,7 @@ void MulticopterPositionControl::Run()
 
 				//Thrust
 		acc = _control._compute_thrust(states);
+		_vehicle_thrust_sub.update(&_vehicle_thrust_get);
 
 				//Takeoff Status
 		_takeoff_status_sub.update(&_takeoff_status_get);
