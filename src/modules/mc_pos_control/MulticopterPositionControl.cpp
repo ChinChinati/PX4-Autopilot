@@ -41,7 +41,7 @@
 #include <iostream>
 
 using namespace matrix;
-
+using namespace std;
 MulticopterPositionControl::MulticopterPositionControl(bool vtol) :
 	ModuleParams(nullptr),
 	ScheduledWorkItem(MODULE_NAME, px4::wq_configurations::nav_and_controllers),
@@ -432,7 +432,7 @@ matrix::Matrix<float, 3, 3> calculateInverse(const matrix::Matrix<float, 3, 3>& 
     float det = a11*c11 + a12*c12 + a13*c13;
 
     // Check if matrix is invertible
-    if (std::abs(det) < 1e-6f) {
+    if (abs(det) < 1e-6f) {
         // Handle singular matrix case
         // You might want to throw an exception or handle it differently
         return matrix::Matrix<float, 3, 3>(); // Returns zero matrix
@@ -706,7 +706,7 @@ void MulticopterPositionControl::Run()
 
 		matrix::Vector3f pos = states.position;
 		float low_point = 0.1; //height in m below which loe will be disabled
-		// std::cout<<"Pos"<<" "<<pos(0)<<" "<<pos(1)<<" "<<pos(2)<<"\n";
+		// cout<<"Pos"<<" "<<pos(0)<<" "<<pos(1)<<" "<<pos(2)<<"\n";
 
 		imu_angular_acc(0) = _computed_torque_get.computed_torque[0] / Ix;
 		imu_angular_acc(1) = _computed_torque_get.computed_torque[1] / Iy;
@@ -715,7 +715,7 @@ void MulticopterPositionControl::Run()
 		// acceleration set points
 		_rotation_matrix_sub.update(&_rotation_matrix_get);
 		_acc_sp = Vector3f(_setpoint.acceleration);
-		// std::cout<<_setpoint<<"\n";
+		// cout<<_setpoint<<"\n";
 		_acc_setpoint(0,0) = _acc_sp(0);
 		_acc_setpoint(1,0) = _acc_sp(1);
 		_acc_setpoint(2,0) = _acc_sp(2);
@@ -733,12 +733,17 @@ void MulticopterPositionControl::Run()
 		_R_inv = calculateInverse(_R);
 		g(0,0) = 0;
 		g(1,0) = 0;
-		g(2,0) = -9.81;
+		g(2,0) = 9.81;
 
 
-		nd = _R_inv*((_acc_setpoint - g)/_computed_thrust_get.computed_thrust[2]);
+		nd = _R_inv*((_acc_setpoint - g)/_vehicle_thrust_get.xyz[2]);
 		nd *= 1.535;
-
+		temp = Vector3f(nd(0,0), nd(1,0), nd(2,0)).normalized();
+		nd(0,0) = temp(0);
+		nd(1,0) = temp(1);
+		nd(2,0) = temp(2);
+		std::cout<<"nd : "<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
+		// cout<<_vehicle_thrust_get.xyz[2]<<" vehical thrust"<<endl;
 		Pd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
 		Qd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
 
@@ -747,7 +752,7 @@ void MulticopterPositionControl::Run()
 
 		Tx_sp = Txo_sp + Ix*(Pd_dot-imu_angular_acc(0));
 		Ty_sp = Tyo_sp + Iy*(Qd_dot-imu_angular_acc(1));
-		// std::cout<<"Tx_sp : "<<Tx_sp<<" "<<"Ty_sp : "<<Ty_sp<<"\n";
+		// cout<<"Tx_sp : "<<Tx_sp<<" "<<"Ty_sp : "<<Ty_sp<<"\n";
 
 		vehicle_torque_s vehicle_torque{};
 		vehicle_torque.timestamp = hrt_absolute_time();
@@ -764,33 +769,33 @@ void MulticopterPositionControl::Run()
 		Qd_ = Qd;
 		// }
 
-		// std::cout<<"Nd :\n";
-		// std::cout<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
+		// cout<<"Nd :\n";
+		// cout<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
 
 
-		// std::cout<<"R inv: \n";
+		// cout<<"R inv: \n";
 		// for (int i = 0; i < 3; i++) {
 		//  for (int j = 0; j < 3; j++) {
-		//      std::cout << _R_inv(i,j) << " ";
+		//      cout << _R_inv(i,j) << " ";
 		//  }
-		//  std::cout << std::endl;
+		//  cout << endl;
 		// }
-		// std::cout<<"\n";
+		// cout<<"\n";
 
-		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
+		// cout<<"Acc: "<<setprecision(3)<<acc(2)<<endl;
 
 
 		//Thrust
 		// _vehicle_acceleration_sub.update(&_vehicle_acceleration_get);
-		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
+		// cout<<"Acc: "<<setprecision(3)<<acc(2)<<endl;
 
 		//Thrust
 		// acc_new = _control._compute_thrust_new(_vehicle_acceleration_get.xyz, states);
-		// std::cout<<"Acc: "<<std::setprecision(3)<<acc(2)<<std::endl;
+		// cout<<"Acc: "<<setprecision(3)<<acc(2)<<endl;
 
-		// std::cout<<_computed_torque_get.computed_torque[0]<<" "<<_computed_torque_get.computed_torque[1]<<" "<<_computed_torque_get.computed_torque[2]<<"\n";
+		// cout<<_computed_torque_get.computed_torque[0]<<" "<<_computed_torque_get.computed_torque[1]<<" "<<_computed_torque_get.computed_torque[2]<<"\n";
 
-		// std::cout<<_actuator_speed_get.actuator_speed_sp[0]<<" "<<_actuator_speed_get.actuator_speed_sp[1]<<" "<<_actuator_speed_get.actuator_speed_sp[2]<<_actuator_speed_get.actuator_speed_sp[3]<<"\n";
+		// cout<<_actuator_speed_get.actuator_speed_sp[0]<<" "<<_actuator_speed_get.actuator_speed_sp[1]<<" "<<_actuator_speed_get.actuator_speed_sp[2]<<_actuator_speed_get.actuator_speed_sp[3]<<"\n";
 		if (_vehicle_status_get.takeoff_time > 0 && flag==true && pos(2)< -1 * low_point){
 			Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
 			Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
@@ -809,13 +814,13 @@ void MulticopterPositionControl::Run()
 			loe(1,0) = math::min(loe(1,0),100.0f);
 			loe(2,0) = math::min(loe(2,0),100.0f);
 			loe(3,0) = math::min(loe(3,0),100.0f);
-			// std::cout<<"Loss of Effectiveness Matrix\n";
-			// std::cout<<"Motor[0]: "<<loe(0,0)<<"\n";
-			// std::cout<<"Motor[1]: "<<loe(1,0)<<"\n";
-			// std::cout<<"Motor[2]: "<<loe(2,0)<<"\n";
-			// std::cout<<"Motor[3]: "<<loe(3,0)<<"\n\n";
+			// cout<<"Loss of Effectiveness Matrix\n";
+			// cout<<"Motor[0]: "<<loe(0,0)<<"\n";
+			// cout<<"Motor[1]: "<<loe(1,0)<<"\n";
+			// cout<<"Motor[2]: "<<loe(2,0)<<"\n";
+			// cout<<"Motor[3]: "<<loe(3,0)<<"\n\n";
 			if(loe(0,0) >= 0.9f){
-				std::cout<<"########### Motor [1] failed ###########\n";
+				cout<<"########### Motor [1] failed ###########\n";
 				motor_failed_s motor_failed{};
 				motor_failed.motor_failed = 1 ;
 				motor_failed.timestamp = hrt_absolute_time();
@@ -823,7 +828,7 @@ void MulticopterPositionControl::Run()
 				flag=false;
 			}
 			else if(loe(1,0) >= 0.9f){
-				std::cout<<"########### Motor [2] failed ###########\n";
+				cout<<"########### Motor [2] failed ###########\n";
 				motor_failed_s motor_failed{};
 				motor_failed.motor_failed = 2 ;
 				motor_failed.timestamp = hrt_absolute_time();
@@ -831,7 +836,7 @@ void MulticopterPositionControl::Run()
 				flag=false;
 			}
 			else if(loe(2,0) >= 0.9f){
-				std::cout<<"########### Motor [3] failed ###########\n";
+				cout<<"########### Motor [3] failed ###########\n";
 				motor_failed_s motor_failed{};
 				motor_failed.motor_failed = 3 ;
 				motor_failed.timestamp = hrt_absolute_time();
@@ -839,7 +844,7 @@ void MulticopterPositionControl::Run()
 				flag=false;
 			}
 			else if(loe(3,0) >= 0.9f){
-				std::cout<<"########### Motor [4] failed ###########\n";
+				cout<<"########### Motor [4] failed ###########\n";
 				motor_failed_s motor_failed{};
 				motor_failed.motor_failed = 4 ;
 				motor_failed.timestamp = hrt_absolute_time();

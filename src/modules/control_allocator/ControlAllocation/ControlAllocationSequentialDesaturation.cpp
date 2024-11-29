@@ -324,7 +324,7 @@ ControlAllocationSequentialDesaturation:: motor_failed_1(){
 		// roll(i) = _mix_updated(i-1, ControlAxis::ROLL);
 		// pitch(i) = _mix_updated(i-1, ControlAxis::PITCH);
 	}
-
+	// cout<<_control_sp(ControlAxis::THRUST_Z)<<" control_sp"<<endl;
 	// desaturateActuators(_actuator_sp, thrust_z, true);
 
 	// Reduce roll/pitch acceleration if needed to unsaturate
