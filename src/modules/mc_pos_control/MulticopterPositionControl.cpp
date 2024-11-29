@@ -738,12 +738,16 @@ void MulticopterPositionControl::Run()
 
 		nd = _R_inv*((_acc_setpoint - g)/_vehicle_thrust_get.xyz[2]);
 		nd *= 1.535;
+<<<<<<< HEAD
 		temp = Vector3f(nd(0,0), nd(1,0), nd(2,0)).normalized();
 		nd(0,0) = temp(0);
 		nd(1,0) = temp(1);
 		nd(2,0) = temp(2);
 		std::cout<<"nd : "<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
 		// cout<<_vehicle_thrust_get.xyz[2]<<" vehical thrust"<<endl;
+=======
+
+>>>>>>> 77cd9d1361 (Tc cleared)
 		Pd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
 		Qd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
 
