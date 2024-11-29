@@ -34,7 +34,7 @@
 /**
  * @file rate_control.cpp
  */
-
+#include <bits/stdc++.h>
 #include "rate_control.hpp"
 #include <px4_platform_common/defines.h>
 
@@ -87,7 +87,7 @@ Vector3f RateControl::update(const Vector3f &rate, const Vector3f &rate_sp, cons
 	if (!landed) {
 		updateIntegral(rate_error, dt);
 	}
-
+	// std::cout<<torque;
 	return torque;
 }
 

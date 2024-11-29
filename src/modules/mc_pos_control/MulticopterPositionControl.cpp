@@ -714,6 +714,7 @@ void MulticopterPositionControl::Run()
 		// acceleration set points
 		_rotation_matrix_sub.update(&_rotation_matrix_get);
 		_acc_sp = Vector3f(_setpoint.acceleration);
+		// std::cout<<_setpoint<<"\n";
 		_acc_setpoint(0,0) = _acc_sp(0);
 		_acc_setpoint(1,0) = _acc_sp(1);
 		_acc_setpoint(2,0) = _acc_sp(2);
@@ -731,15 +732,18 @@ void MulticopterPositionControl::Run()
 		_R_inv = calculateInverse(_R);
 		g(0,0) = 0;
 		g(1,0) = 0;
-		g(2,0) = 9.81;
+		g(2,0) = -9.81;
 
 
 		nd = _R_inv*((_acc_setpoint - g)/_computed_thrust_get.computed_thrust[2]);
 		nd *= 1.535;
 
 
-		Pd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
-		Qd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
+		Tc = (_acc_setpoint - g)/_R(2,2);
+		Tc *= -1.535;
+		std::cout<< Tc;
+		Pd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
+		Qd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
 
 		Pd_dot = Kp*(Pd - Pd_)/dt;
 		Qd_dot = Kq*(Qd - Qd_)/dt;

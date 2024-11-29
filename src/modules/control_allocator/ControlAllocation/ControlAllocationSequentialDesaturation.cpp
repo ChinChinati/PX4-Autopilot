@@ -284,7 +284,7 @@ ControlAllocationSequentialDesaturation::mixYaw()
 
 // ###################################################
 void
-ControlAllocationSequentialDesaturation::motor_failed_1(){
+ControlAllocationSequentialDesaturation:: motor_failed_1(){
 	matrix::Matrix<float, 3, 3> _mix_updated;
 	// Modification then inverse
 	// _mix_updated(0,0) = 0.41025641026;
@@ -318,10 +318,11 @@ ControlAllocationSequentialDesaturation::motor_failed_1(){
 			_actuator_sp(i) = 0;
 			continue;
 		}
+
 		_actuator_sp(i) = (_mix_updated(i-1, 0)*_vehicle_torque_get.tx) + (_mix_updated(i-1, 1)*_vehicle_torque_get.ty) + (_mix_updated(i-1, 2)*_control_sp(ControlAxis::THRUST_Z));
-		thrust_z(i) = _mix_updated(i-1, 2);
-		roll(i) = _mix_updated(i-1, ControlAxis::ROLL);
-		pitch(i) = _mix_updated(i-1, ControlAxis::PITCH);
+		// thrust_z(i) = _mix_updated(i-1, 2);
+		// roll(i) = _mix_updated(i-1, ControlAxis::ROLL);
+		// pitch(i) = _mix_updated(i-1, ControlAxis::PITCH);
 	}
 
 	// desaturateActuators(_actuator_sp, thrust_z, true);
@@ -329,7 +330,7 @@ ControlAllocationSequentialDesaturation::motor_failed_1(){
 	// Reduce roll/pitch acceleration if needed to unsaturate
 	// desaturateActuators(_actuator_sp, roll);
 	// desaturateActuators(_actuator_sp, pitch);
-	cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl;
+	// cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl;
 
 	// Mix yaw independently
 	// mixYaw();

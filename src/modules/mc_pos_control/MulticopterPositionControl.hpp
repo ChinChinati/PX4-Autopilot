@@ -117,8 +117,8 @@ public:
 	matrix::Matrix<float, 3, 3> _R;
 	matrix::Matrix<float, 3, 3> _R_inv;
 	matrix::Vector3f _thr;
-	float Kp=1;
-	float Kq=1;
+	float Kp=0.7;
+	float Kq=0.7;
 	float Ix=0.029125;
 	float Iy=0.029125;
 	float Iz=0.055225;
