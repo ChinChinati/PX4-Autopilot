@@ -77,6 +77,7 @@
 #include <uORB/topics/rotation_matrix.h>
 #include <uORB/topics/sensors_rpy_rate.h>
 #include <uORB/topics/vehicle_torque.h>
+#include <uORB/topics/vehicle_thrust.h>
 
 
 using namespace time_literals;
@@ -175,6 +176,7 @@ private:
 	uORB::Subscription _rotation_matrix_sub{ORB_ID(rotation_matrix)};
 	uORB::Subscription _computed_thrust_sub{ORB_ID(computed_thrust)};
 	uORB::Subscription _sensor_rpy_rate_sub{ORB_ID(sensors_rpy_rate)};
+	uORB::Subscription _vehicle_thrust_sub{ORB_ID(vehicle_thrust)};
 
 
 
@@ -241,6 +243,10 @@ private:
 	rotation_matrix_s _rotation_matrix_get {
 		.timestamp = 0,
 		.matrix = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,},
+	};
+	vehicle_thrust_s _vehicle_thrust_get {
+		.timestamp = 0,
+		.xyz = {0.0,0.0,0.0},
 	};
 	// #########################################################
 

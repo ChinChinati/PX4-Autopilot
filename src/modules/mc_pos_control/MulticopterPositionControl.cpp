@@ -693,6 +693,7 @@ void MulticopterPositionControl::Run()
 
 				//Thrust
 		acc = _control._compute_thrust(states);
+		_vehicle_thrust_sub.update(&_vehicle_thrust_get);
 
 				//Takeoff Status
 		_takeoff_status_sub.update(&_takeoff_status_get);
@@ -738,10 +739,6 @@ void MulticopterPositionControl::Run()
 		nd = _R_inv*((_acc_setpoint - g)/_computed_thrust_get.computed_thrust[2]);
 		nd *= 1.535;
 
-
-		Tc = (_acc_setpoint - g)/_R(2,2);
-		Tc *= -1.535;
-		std::cout<< Tc;
 		Pd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
 		Qd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
 
