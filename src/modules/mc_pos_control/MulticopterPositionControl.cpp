@@ -738,10 +738,6 @@ void MulticopterPositionControl::Run()
 		nd = _R_inv*((_acc_setpoint - g)/_computed_thrust_get.computed_thrust[2]);
 		nd *= 1.535;
 
-
-		Tc = (_acc_setpoint(2,0) - g(2,0))/_R(2,2);
-		Tc *= 1.535;
-		std::cout<< Tc<<std::endl;
 		Pd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
 		Qd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
 
