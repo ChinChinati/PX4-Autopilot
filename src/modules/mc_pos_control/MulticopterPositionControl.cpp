@@ -734,7 +734,7 @@ void MulticopterPositionControl::Run()
 		g(2,0) = 9.81;
 
 
-		nd = _R_inv*((_acc_setpoint + g)/_computed_thrust_get.computed_thrust[2]);
+		nd = _R_inv*((_acc_setpoint - g)/_computed_thrust_get.computed_thrust[2]);
 		nd *= 1.535;
 
 
