@@ -59,16 +59,30 @@ Matrix3f quaternion_to_rotation_matrix(const Quaternion<float>& q)
     Matrix3f R;
     // Calculate the rotation matrix from the quaternion q
     // Formula for quaternion to rotation matrix
-    R(0, 0) = 1 - 2 * (q(1) * q(1) + q(2) * q(2));
-    R(0, 1) = 2 * (q(0) * q(1) - q(3) * q(2));
-    R(0, 2) = 2 * (q(0) * q(2) + q(3) * q(1));
-    R(1, 0) = 2 * (q(0) * q(1) + q(3) * q(2));
-    R(1, 1) = 1 - 2 * (q(0) * q(0) + q(2) * q(2));
-    R(1, 2) = 2 * (q(1) * q(2) - q(3) * q(0));
-    R(2, 0) = 2 * (q(0) * q(2) - q(3) * q(1));
-    R(2, 1) = 2 * (q(1) * q(2) + q(3) * q(0));
-    R(2, 2) = 1 - 2 * (q(0) * q(0) + q(1) * q(1));
-    return R;
+//     R(0, 0) = 1 - 2 * (q(1) * q(1) + q(2) * q(2));
+//     R(0, 1) = 2 * (q(0) * q(1) - q(3) * q(2));
+//     R(0, 2) = 2 * (q(0) * q(2) + q(3) * q(1));
+//     R(1, 0) = 2 * (q(0) * q(1) + q(3) * q(2));
+//     R(1, 1) = 1 - 2 * (q(0) * q(0) + q(2) * q(2));
+//     R(1, 2) = 2 * (q(1) * q(2) - q(3) * q(0));
+//     R(2, 0) = 2 * (q(0) * q(2) - q(3) * q(1));
+//     R(2, 1) = 2 * (q(1) * q(2) + q(3) * q(0));
+//     R(2, 2) = 1 - 2 * (q(0) * q(0) + q(1) * q(1));
+//     return R;
+
+	double roll = atan2(2.f * (q(0) * q(1) + q(2) * q(3)), 1.f - 2.f * (q(1) * q(1) + q(2) * q(2)));
+	double pitch = asin(2.f * (q(0) * q(2) - q(3) * q(1)));
+	double yaw = atan2(2.f * (q(0) * q(3) + q(1) * q(2)), 1.f - 2.f * (q(2) * q(2) + q(3) * q(3)));
+    	R(0, 0) = cos(pitch) * cos(yaw);
+    	R(0, 1) = sin(roll) * sin(pitch)*cos(yaw) - cos(roll) * sin(yaw);
+    	R(0, 2) = cos(roll) * sin(pitch)*cos(yaw) + sin(roll) * sin(yaw);
+    	R(1, 0) = cos(pitch) * sin(yaw);
+    	R(1, 1) = sin(roll) * sin(pitch) * sin(yaw) - cos(roll) * cos(yaw);
+    	R(1, 2) = cos(roll) * sin(pitch) * sin(yaw) - sin(roll) * cos(yaw);
+    	R(2, 0) = -sin(pitch);
+    	R(2, 1) = sin(roll) * cos(pitch);
+    	R(2, 2) = cos(roll) * cos(pitch);
+	return R;
 }
 //######################################################################################
 

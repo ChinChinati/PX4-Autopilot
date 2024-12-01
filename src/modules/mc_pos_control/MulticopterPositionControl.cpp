@@ -742,7 +742,7 @@ void MulticopterPositionControl::Run()
 		nd(0,0) = temp(0);
 		nd(1,0) = temp(1);
 		nd(2,0) = temp(2);
-		std::cout<<"nd : "<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
+		// cout<<"nd : "<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
 		// cout<<_vehicle_thrust_get.xyz[2]<<" vehical thrust"<<endl;
 
 		Pd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
@@ -750,6 +750,7 @@ void MulticopterPositionControl::Run()
 
 		Pd_dot = Kp*(Pd - Pd_)/dt;
 		Qd_dot = Kq*(Qd - Qd_)/dt;
+		// cout<<Pd_dot<<" "<<Qd_dot<<endl;
 
 		Tx_sp = Txo_sp + Ix*(Pd_dot-imu_angular_acc(0));
 		Ty_sp = Tyo_sp + Iy*(Qd_dot-imu_angular_acc(1));

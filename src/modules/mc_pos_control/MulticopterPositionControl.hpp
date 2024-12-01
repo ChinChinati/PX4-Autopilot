@@ -120,8 +120,8 @@ public:
 	matrix::Vector3f _thr;
 	matrix::Vector3f temp;
 	double Tc=0;
-	float Kp=1;
-	float Kq=1;
+	float Kp=5;
+	float Kq=5;
 	float Ix=0.029125;
 	float Iy=0.029125;
 	float Iz=0.055225;

@@ -61,7 +61,7 @@ public:
 	virtual ~ControlAllocationSequentialDesaturation() = default;
 
 	void allocate() override;
-
+	matrix::Vector3f temp;
 	void updateParameters() override;
 private:
 	uORB::Publication<actuator_speed_s> _actuator_speed_pub{ORB_ID(actuator_speed)};
