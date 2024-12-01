@@ -129,12 +129,18 @@ public:
 	float Qd;
 	float Pd_;
 	float Qd_;
-	float Pd_dot;
-	float Qd_dot;
-	float Tx_sp;
-	float Ty_sp;
-	float Txo_sp;
-	float Tyo_sp;
+	float Tx_sp=0;
+	float Ty_sp=0;
+	float Txo_sp=0;
+	float Tyo_sp=0;
+	float Vp;
+	float Vq;
+	float P;
+	float Q;
+	float Kp_p = 13,
+		Kp_q = 13,
+		Kd_p = 0.1,
+		Kd_q = 0.1;
 	// ####################################################
 
 	// ##########################################################

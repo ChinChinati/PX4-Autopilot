@@ -40,12 +40,12 @@
  */
 
 #include "ControlAllocator.hpp"
-
+#include <bits/stdc++.h>
 #include <drivers/drv_hrt.h>
 #include <circuit_breaker/circuit_breaker.h>
 #include <mathlib/math/Limits.hpp>
 #include <mathlib/math/Functions.hpp>
-
+using namespace std;
 using namespace matrix;
 using namespace time_literals;
 
@@ -712,6 +712,13 @@ ControlAllocator::publish_actuator_controls()
 
 		_actuator_servos_pub.publish(actuator_servos);
 	}
+	// cout<<"actuator_motors.control"<<endl;
+	// cout<< actuator_motors.control[0]<<" "<< actuator_motors.control[1]<<" "<< actuator_motors.control[2]<<" "<< actuator_motors.control[3];
+	// cout<<endl;
+
+	// cout<<"actuator_servos.control"<<endl;
+	// cout<< actuator_servos.control[0]<<" "<< actuator_servos.control[1]<<" "<< actuator_servos.control[2]<<" "<< actuator_servos.control[3];
+	// cout<<endl;
 }
 
 void

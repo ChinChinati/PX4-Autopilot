@@ -748,13 +748,18 @@ void MulticopterPositionControl::Run()
 		Pd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
 		Qd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
 
-		Pd_dot = Kp*(Pd - Pd_)/dt;
-		Qd_dot = Kq*(Qd - Qd_)/dt;
-		// cout<<Pd_dot<<" "<<Qd_dot<<endl;
+		P = _sensors_rpy_rate_get.rpy_rate[0];
+		Q = _sensors_rpy_rate_get.rpy_rate[1];
 
-		Tx_sp = Txo_sp + Ix*(Pd_dot-imu_angular_acc(0));
-		Ty_sp = Tyo_sp + Iy*(Qd_dot-imu_angular_acc(1));
-		// cout<<"Tx_sp : "<<Tx_sp<<" "<<"Ty_sp : "<<Ty_sp<<"\n";
+		Vp = Kp_p*(-Pd + P) + Kd_p*(Pd - Pd_)/dt;
+		Vq = Kp_q*(-Qd + Q) + Kd_q*(Qd - Qd_)/dt;
+
+
+		Tx_sp = Txo_sp + Ix*(Vp-imu_angular_acc(0));
+		Ty_sp = Tyo_sp + Iy*(Vq-imu_angular_acc(1));
+
+		cout<<"Vp : "<<Vp<<" "<<"Vq : "<<Vq<<"\n";
+		cout<<"Tx_sp : "<<Tx_sp<<" "<<"Ty_sp : "<<Ty_sp<<"\n";
 
 		vehicle_torque_s vehicle_torque{};
 		vehicle_torque.timestamp = hrt_absolute_time();
@@ -766,6 +771,8 @@ void MulticopterPositionControl::Run()
 
 			// PX4_INFO("100 ms has passed; performing action.");
 
+		// Txo_sp = Tx_sp;
+		// Tyo_sp = Ty_sp;
 
 		Pd_ = Pd;
 		Qd_ = Qd;
@@ -810,6 +817,10 @@ void MulticopterPositionControl::Run()
 			T(3,0) = acc(2);
 
 			A_ = Du_*_mix;
+			// for (int i=0;i<4;i++){
+			// 	cout<<_mix(i,0)<<" "<<_mix(i,1)<<" "<<_mix(i,2)<<" "<<_mix(i,3)<<"\n";
+			// }
+			// cout<<endl;
 			loe = unity - A_*T;
 
 			loe(0,0) = math::min(loe(0,0),100.0f);
