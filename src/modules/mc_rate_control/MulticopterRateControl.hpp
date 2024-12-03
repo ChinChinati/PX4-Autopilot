@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include <lib/rate_control/rate_control.hpp>
+#include <lib/rate_control/rate_control.hpp> 
 #include <lib/matrix/matrix/math.hpp>
 #include <lib/perf/perf_counter.h>
 #include <px4_platform_common/defines.h>
@@ -59,6 +59,11 @@
 #include <uORB/topics/vehicle_status.h>
 #include <uORB/topics/vehicle_thrust_setpoint.h>
 #include <uORB/topics/vehicle_torque_setpoint.h>
+#include <uORB/topics/vehicle_torque.h>
+#include <uORB/topics/primary_axes.h>
+#include <uORB/topics/motor_failed.h>
+#include <uORB/topics/vehicle_angular_velocity.h>
+#include <iostream>
 
 using namespace time_literals;
 
@@ -78,6 +83,29 @@ public:
 	static int print_usage(const char *reason = nullptr);
 
 	bool init();
+	// ###########################################################
+	matrix::Matrix<float, 3, 1> nd; // nx, ny, nz
+	double Tc=0;
+	float Ix=0.029125;
+	float Iy=0.029125;
+	float Iz=0.055225;
+	float Pd;
+	float Qd;
+	float Pd_;
+	float Qd_;
+	float Tx_sp=0;
+	float Ty_sp=0;
+	float Txo_sp=0;
+	float Tyo_sp=0;
+	float Vp;
+	float Vq;
+	float P;
+	float Q;
+	float Kp_p = 0.1,
+		Kp_q = 0.1,
+		Kd_p = .01,
+		Kd_q = .01;
+	// ###########################################################
 
 private:
 	void Run() override;
@@ -98,6 +126,12 @@ private:
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
 	uORB::Subscription _vehicle_rates_setpoint_sub{ORB_ID(vehicle_rates_setpoint)};
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
+	// ##########################################################################
+	uORB::Subscription _primary_axes_sub{ORB_ID(primary_axes)};
+	uORB::Subscription _motor_failed_sub{ORB_ID(motor_failed)};
+	// uORB::Subscription _vehicle_angular_velocity_sub1{ORB_ID(vehicle_angular_velocity)};
+	// not used as already a SubscriptionCallbackWorkItem Made for that topic
+	// ##########################################################################
 
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
 
@@ -108,9 +142,30 @@ private:
 	uORB::Publication<vehicle_rates_setpoint_s>	_vehicle_rates_setpoint_pub{ORB_ID(vehicle_rates_setpoint)};
 	uORB::Publication<vehicle_torque_setpoint_s>	_vehicle_torque_setpoint_pub;
 	uORB::Publication<vehicle_thrust_setpoint_s>	_vehicle_thrust_setpoint_pub;
+	// ##########################################################################
+	uORB::Publication<vehicle_torque_s> _vehicle_torque_pub{ORB_ID(vehicle_torque)};
+	// ##########################################################################
 
 	vehicle_control_mode_s	_vehicle_control_mode{};
 	vehicle_status_s	_vehicle_status{};
+	// #########################################################################
+	primary_axes_s _primary_axes_get{
+		.timestamp = 0,
+		.nd ={0.0,0.0,0.0},
+	};
+
+	motor_failed_s _motor_failed_get {
+		.timestamp = 0,
+		.motor_failed = 0,
+	};
+
+	vehicle_angular_velocity_s _vehicle_angular_velocity_get {
+		.timestamp = 0,
+		.timestamp_sample = 0,
+		.xyz = {0.0,0.0,0.0},
+		.xyz_derivative = {0.0,0.0,0.0},
+	};
+	// ##########################################################################
 
 	bool _landed{true};
 	bool _maybe_landed{true};

@@ -31,7 +31,7 @@
  *
  ****************************************************************************/
 
-#include "MulticopterRateControl.hpp"
+#include "MulticopterRateControl.hpp" 
 
 #include <drivers/drv_hrt.h>
 #include <circuit_breaker/circuit_breaker.h>
@@ -262,6 +262,51 @@ MulticopterRateControl::Run()
 			updateActuatorControlsStatus(vehicle_torque_setpoint, dt);
 
 		}
+		// ##############################################################
+		  			//Motor Failure Sub
+		_motor_failed_sub.update(&_motor_failed_get);
+		if(_motor_failed_get.motor_failed != 0){
+			//  SUBSCRIPTION UPDATES
+					//Angular Velocity
+			// _vehicle_angular_velocity_sub1.update(&_vehicle_angular_velocity_get);
+			// // If issue enable this topic and replace angular_velocity with _vehicle_angular_velocity_get
+
+			  		//Primary Axes
+			_primary_axes_sub.update(&_primary_axes_get);
+			nd(0,0) = _primary_axes_get.nd[0];
+			nd(1,0) = _primary_axes_get.nd[1];
+			nd(2,0) = _primary_axes_get.nd[2];
+			
+
+			Pd = (nd(0,0) * angular_velocity.xyz[2])/nd(2,0); //Sensor value
+			Qd = (nd(1,0) * angular_velocity.xyz[2])/nd(2,0); //Sensor value
+
+			P = angular_velocity.xyz[0];
+			Q = angular_velocity.xyz[1];
+
+			Vp = Kp_p*(-Pd + P) + Kd_p*(Pd - Pd_)/dt;
+			Vq = Kp_q*(-Qd + Q) + Kd_q*(Qd - Qd_)/dt; 
+
+
+			Tx_sp = Txo_sp + Ix*(Vp-angular_velocity.xyz_derivative[0]);
+			Ty_sp = Tyo_sp + Iy*(Vq-angular_velocity.xyz_derivative[1]);
+
+			vehicle_torque_s vehicle_torque{};
+			vehicle_torque.timestamp = hrt_absolute_time();
+			vehicle_torque.tx= Tx_sp;
+			vehicle_torque.ty= Ty_sp;
+			_vehicle_torque_pub.publish(vehicle_torque);
+
+			Txo_sp = Tx_sp;
+			Tyo_sp = Ty_sp;
+
+			Pd_ = Pd;
+			Qd_ = Qd;
+
+			// cout<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
+			std::cout<<Tx_sp<<" "<<Ty_sp<<"\n";
+		}
+		// ########################################################################
 	}
 
 	perf_end(_loop_perf);

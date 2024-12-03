@@ -70,7 +70,7 @@ bool MulticopterPositionControl::init()
 
 
 
-	// ######################################################################################
+	// ###################################################################################### 
 
 	// Loss Of Effectiveness
 	_mix(0,0) = -0.495384;
@@ -804,41 +804,19 @@ void MulticopterPositionControl::Run()
 		Tc = -1.535f*(_acc_setpoint(2,0) - g(2,0))/_R(2,2);
 		nd = _R_inv*((_acc_setpoint - g)/Tc);
 		nd *= 1.535;
-		temp = Vector3f(nd(0,0), nd(1,0), nd(2,0)).normalized();
-		nd(0,0) = temp(0);
-		nd(1,0) = temp(1);
-		nd(2,0) = temp(2);
+		// temp = Vector3f(nd(0,0), nd(1,0), nd(2,0)).normalized();
+		// nd(0,0) = temp(0);
+		// nd(1,0) = temp(1);
+		// nd(2,0) = temp(2);
 		// cout<<_vehicle_thrust_get.xyz[0]<<" "<<_vehicle_thrust_get.xyz[1]<<" "<<_vehicle_thrust_get.xyz[2]<<" "<<endl;
 		// cout<<_acc_setpoint(0,0)<<" "<<_acc_setpoint(1,0)<<" "<<_acc_setpoint(2,0)<<" "<<endl;
+		primary_axes_s primary_axes{};
+		primary_axes.timestamp = hrt_absolute_time();
+		primary_axes.nd[0] = nd(0,0);
+		primary_axes.nd[1] = nd(1,0);
+		primary_axes.nd[2] = nd(2,0);
+		_primary_axes_pub.publish(primary_axes);
 
-		Pd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0); //Sensor value
-		Qd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0); //Sensor value
-
-		P = _sensors_rpy_rate_get.rpy_rate[0];
-		Q = _sensors_rpy_rate_get.rpy_rate[1];
-
-		Vp = Kp_p*(-Pd + P) + Kd_p*(Pd - Pd_)/dt;
-		Vq = Kp_q*(-Qd + Q) + Kd_q*(Qd - Qd_)/dt;
-
-
-		Tx_sp = Txo_sp + Ix*(Vp-imu_angular_acc(0));
-		Ty_sp = Tyo_sp + Iy*(Vq-imu_angular_acc(1));
-
-		vehicle_torque_s vehicle_torque{};
-		vehicle_torque.timestamp = hrt_absolute_time();
-		vehicle_torque.tx= Tx_sp;
-		vehicle_torque.ty= Ty_sp;
-		_vehicle_torque_pub.publish(vehicle_torque);
-
-		Txo_sp = Tx_sp;
-		Tyo_sp = Ty_sp;
-
-		Pd_ = Pd;
-		Qd_ = Qd;
-
-		// cout<<(Ix*Vp-imu_angular_acc(0))<<" "<<(Iy*Vq-imu_angular_acc(1))<<"\n";
-		// cout<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
-		cout<<Tx_sp<<" "<<Ty_sp<<"\n";
 		}
 
 

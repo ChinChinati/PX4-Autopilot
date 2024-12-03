@@ -78,6 +78,7 @@
 #include <uORB/topics/sensors_rpy_rate.h>
 #include <uORB/topics/vehicle_torque.h>
 #include <uORB/topics/vehicle_thrust.h>
+#include <uORB/topics/primary_axes.h>
 
 
 using namespace time_literals;
@@ -121,8 +122,6 @@ public:
 	matrix::Vector3f _thr;
 	matrix::Vector3f temp;
 	double Tc=0;
-	float Kp=5;
-	float Kq=5;
 	float Ix=0.029125;
 	float Iy=0.029125;
 	float Iz=0.055225;
@@ -138,10 +137,10 @@ public:
 	float Vq;
 	float P;
 	float Q;
-	float Kp_p = 10,
-		Kp_q = 10,
-		Kd_p = 1,
-		Kd_q = 1;
+	float Kp_p = 1,
+		Kp_q = 1,
+		Kd_p = .01,
+		Kd_q = .01;
 	// ####################################################
 
 	// ##########################################################
@@ -164,6 +163,7 @@ private:
 	uORB::Publication<loe_matrix_s> _loe_matrix_pub{ORB_ID(loe_matrix)};
 	uORB::Publication<motor_failed_s> _motor_failed_pub{ORB_ID(motor_failed)};
 	uORB::Publication<vehicle_torque_s> _vehicle_torque_pub{ORB_ID(vehicle_torque)};
+	uORB::Publication<primary_axes_s> _primary_axes_pub{ORB_ID(primary_axes)};
 	// ##################################################
 
 	uORB::SubscriptionCallbackWorkItem _local_pos_sub{this, ORB_ID(vehicle_local_position)};	/**< vehicle local position */
@@ -177,7 +177,7 @@ private:
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
 
 	// #####################################################
-	uORB::Subscription _computed_torque_sub{ORB_ID(computed_torque)};
+	uORB::Subscription _computed_torque_sub{ORB_ID(computed_torque)}; 
 	uORB::Subscription _actuator_speed_sub{ORB_ID(actuator_speed)};
 	uORB::Subscription _vehicle_acceleration_sub{ORB_ID(vehicle_acceleration)};
 	uORB::Subscription _takeoff_status_sub{ORB_ID(takeoff_status)};
@@ -186,9 +186,6 @@ private:
 	uORB::Subscription _computed_thrust_sub{ORB_ID(computed_thrust)};
 	uORB::Subscription _sensor_rpy_rate_sub{ORB_ID(sensors_rpy_rate)};
 	uORB::Subscription _vehicle_thrust_sub{ORB_ID(vehicle_thrust)};
-
-
-
 	//######################################################
 
 	hrt_abstime _time_stamp_last_loop{0};		/**< time stamp of last loop iteration */
@@ -214,7 +211,7 @@ private:
 		.maybe_landed = true,
 		.landed = true,
 	};
-	// #########################################################
+	// ######################################################### 
 	sensors_rpy_rate_s _sensors_rpy_rate_get{
 		.timestamp = 0,
 		.rpy_rate = {0.0,0.0,0.0},
