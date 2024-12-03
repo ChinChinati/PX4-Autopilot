@@ -78,6 +78,7 @@
 #include <uORB/topics/sensors_rpy_rate.h>
 #include <uORB/topics/vehicle_torque.h>
 #include <uORB/topics/vehicle_thrust.h>
+#include <uORB/topics/vehicle_angular_velocity.h>
 
 
 using namespace time_literals;
@@ -121,8 +122,6 @@ public:
 	matrix::Vector3f _thr;
 	matrix::Vector3f temp;
 	double Tc=0;
-	float Kp=5;
-	float Kq=5;
 	float Ix=0.029125;
 	float Iy=0.029125;
 	float Iz=0.055225;
@@ -138,10 +137,14 @@ public:
 	float Vq;
 	float P;
 	float Q;
-	float Kp_p = 10,
-		Kp_q = 10,
-		Kd_p = 1,
-		Kd_q = 1;
+	float Kp_p = 1,
+		Kp_q = 1,
+		Kd_p = .01,
+		Kd_q = .01;
+	// float Kp_p = 1.,
+	// 	Kp_q = 1.,
+	// 	Kd_p = .1,
+	// 	Kd_q = .1;
 	// ####################################################
 
 	// ##########################################################
@@ -186,6 +189,7 @@ private:
 	uORB::Subscription _computed_thrust_sub{ORB_ID(computed_thrust)};
 	uORB::Subscription _sensor_rpy_rate_sub{ORB_ID(sensors_rpy_rate)};
 	uORB::Subscription _vehicle_thrust_sub{ORB_ID(vehicle_thrust)};
+	uORB::Subscription _vehicle_angular_velocity_sub{ORB_ID(vehicle_angular_velocity)};
 
 
 
@@ -215,6 +219,14 @@ private:
 		.landed = true,
 	};
 	// #########################################################
+	vehicle_angular_velocity_s _vehicle_angular_velocity_get {
+		.timestamp = 0,
+		.timestamp_sample = 0,
+		.xyz = {0.0,0.0,0.0},
+
+		.xyz_derivative = {0.0,0.0,0.0},
+	};
+
 	sensors_rpy_rate_s _sensors_rpy_rate_get{
 		.timestamp = 0,
 		.rpy_rate = {0.0,0.0,0.0},

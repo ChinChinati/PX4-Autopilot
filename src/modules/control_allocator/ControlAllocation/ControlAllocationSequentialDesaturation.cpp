@@ -358,7 +358,7 @@ ControlAllocationSequentialDesaturation:: motor_failed_1(){
 	// desaturateActuators(_actuator_sp, roll);
 	// desaturateActuators(_actuator_sp, pitch);
 	// cout<<_vehicle_torque_get.tx<<" "<<_vehicle_torque_get.tx<<endl;
-	// cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl;
+	//cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl;
 
 	// Mix yaw independently
 	// mixYaw();
