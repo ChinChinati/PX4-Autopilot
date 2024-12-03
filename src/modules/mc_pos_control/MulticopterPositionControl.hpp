@@ -101,6 +101,7 @@ public:
 	bool init();
 
 	// ###################################################
+	motor_failed_s motor_failed{};
 	bool flag = true;
 	matrix::Vector3f acc;
 	matrix::Vector3f _acc_sp;
@@ -137,10 +138,10 @@ public:
 	float Vq;
 	float P;
 	float Q;
-	float Kp_p = 13,
-		Kp_q = 13,
-		Kd_p = 0.1,
-		Kd_q = 0.1;
+	float Kp_p = 10,
+		Kp_q = 10,
+		Kd_p = 1,
+		Kd_q = 1;
 	// ####################################################
 
 	// ##########################################################

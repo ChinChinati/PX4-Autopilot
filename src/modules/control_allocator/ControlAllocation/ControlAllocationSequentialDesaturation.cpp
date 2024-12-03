@@ -351,14 +351,14 @@ ControlAllocationSequentialDesaturation:: motor_failed_1(){
 	// _actuator_sp(3) = temp(2);
 	// _actuator_s /= 1.414f;
 	// // Base thrust of 3 actuator required 0.808290377 each
-	// _actuator_sp(1) += 0.6f;
-	// _actuator_sp(2) += 0.6f;
-	// _actuator_sp(3) += 0.6f;
+	// _actuator_sp(1) += .7f;
+	// _actuator_sp(2) += .7f;
+	// _actuator_sp(3) += .7f;
 	// // Reduce roll/pitch acceleration if needed to unsaturate
 	// desaturateActuators(_actuator_sp, roll);
 	// desaturateActuators(_actuator_sp, pitch);
 	// cout<<_vehicle_torque_get.tx<<" "<<_vehicle_torque_get.tx<<endl;
-	cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl;
+	// cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl;
 
 	// Mix yaw independently
 	// mixYaw();

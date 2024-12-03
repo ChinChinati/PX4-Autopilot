@@ -58,7 +58,7 @@
  * @unit deg
  * @group Failure Detector
  */
-PARAM_DEFINE_INT32(FD_FAIL_R, 60);
+PARAM_DEFINE_INT32(FD_FAIL_R,0);
 
 /**
  * FailureDetector Max Pitch
@@ -76,7 +76,7 @@ PARAM_DEFINE_INT32(FD_FAIL_R, 60);
  * @unit deg
  * @group Failure Detector
  */
-PARAM_DEFINE_INT32(FD_FAIL_P, 60);
+PARAM_DEFINE_INT32(FD_FAIL_P, 0);
 
 /**
  * Roll failure trigger time

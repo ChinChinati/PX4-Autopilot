@@ -729,82 +729,6 @@ void MulticopterPositionControl::Run()
 		_R(1,2) = _rotation_matrix_get.matrix[7];
 		_R(2,2) = _rotation_matrix_get.matrix[8];
 
-
-		_R_inv = calculateInverse(_R);
-		g(0,0) = 0;
-		g(1,0) = 0;
-		g(2,0) = 9.81;
-
-
-		nd = _R_inv*((_acc_setpoint - g)/_vehicle_thrust_get.xyz[2]);
-		nd *= 1.535;
-		temp = Vector3f(nd(0,0), nd(1,0), nd(2,0)).normalized();
-		nd(0,0) = temp(0);
-		nd(1,0) = temp(1);
-		nd(2,0) = temp(2);
-		// cout<<"nd : "<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
-		// cout<<_vehicle_thrust_get.xyz[2]<<" vehical thrust"<<endl;
-
-		Pd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
-		Qd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0);
-
-		P = _sensors_rpy_rate_get.rpy_rate[0];
-		Q = _sensors_rpy_rate_get.rpy_rate[1];
-
-		Vp = Kp_p*(-Pd + P) + Kd_p*(Pd - Pd_)/dt;
-		Vq = Kp_q*(-Qd + Q) + Kd_q*(Qd - Qd_)/dt;
-
-
-		Tx_sp = Txo_sp + Ix*(Vp-imu_angular_acc(0));
-		Ty_sp = Tyo_sp + Iy*(Vq-imu_angular_acc(1));
-
-		cout<<"Vp : "<<Vp<<" "<<"Vq : "<<Vq<<"\n";
-		cout<<"Tx_sp : "<<Tx_sp<<" "<<"Ty_sp : "<<Ty_sp<<"\n";
-
-		vehicle_torque_s vehicle_torque{};
-		vehicle_torque.timestamp = hrt_absolute_time();
-		vehicle_torque.tx= Tx_sp;
-		vehicle_torque.ty= Ty_sp;
-		_vehicle_torque_pub.publish(vehicle_torque);
-		// Check if more than 100 ms (100,000 microseconds) has passed
-		// if ((current_time_us - _last_action_time_us) > 100000) {
-
-			// PX4_INFO("100 ms has passed; performing action.");
-
-		// Txo_sp = Tx_sp;
-		// Tyo_sp = Ty_sp;
-
-		Pd_ = Pd;
-		Qd_ = Qd;
-		// }
-
-		// cout<<"Nd :\n";
-		// cout<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
-
-
-		// cout<<"R inv: \n";
-		// for (int i = 0; i < 3; i++) {
-		//  for (int j = 0; j < 3; j++) {
-		//      cout << _R_inv(i,j) << " ";
-		//  }
-		//  cout << endl;
-		// }
-		// cout<<"\n";
-
-		// cout<<"Acc: "<<setprecision(3)<<acc(2)<<endl;
-
-
-		//Thrust
-		// _vehicle_acceleration_sub.update(&_vehicle_acceleration_get);
-		// cout<<"Acc: "<<setprecision(3)<<acc(2)<<endl;
-
-		//Thrust
-		// acc_new = _control._compute_thrust_new(_vehicle_acceleration_get.xyz, states);
-		// cout<<"Acc: "<<setprecision(3)<<acc(2)<<endl;
-
-		// cout<<_computed_torque_get.computed_torque[0]<<" "<<_computed_torque_get.computed_torque[1]<<" "<<_computed_torque_get.computed_torque[2]<<"\n";
-
-		// cout<<_actuator_speed_get.actuator_speed_sp[0]<<" "<<_actuator_speed_get.actuator_speed_sp[1]<<" "<<_actuator_speed_get.actuator_speed_sp[2]<<_actuator_speed_get.actuator_speed_sp[3]<<"\n";
 		if (_vehicle_status_get.takeoff_time > 0 && flag==true && pos(2)< -1 * low_point){
 			Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
 			Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
@@ -817,24 +741,16 @@ void MulticopterPositionControl::Run()
 			T(3,0) = acc(2);
 
 			A_ = Du_*_mix;
-			// for (int i=0;i<4;i++){
-			// 	cout<<_mix(i,0)<<" "<<_mix(i,1)<<" "<<_mix(i,2)<<" "<<_mix(i,3)<<"\n";
-			// }
-			// cout<<endl;
+
 			loe = unity - A_*T;
 
 			loe(0,0) = math::min(loe(0,0),100.0f);
 			loe(1,0) = math::min(loe(1,0),100.0f);
 			loe(2,0) = math::min(loe(2,0),100.0f);
 			loe(3,0) = math::min(loe(3,0),100.0f);
-			// cout<<"Loss of Effectiveness Matrix\n";
-			// cout<<"Motor[0]: "<<loe(0,0)<<"\n";
-			// cout<<"Motor[1]: "<<loe(1,0)<<"\n";
-			// cout<<"Motor[2]: "<<loe(2,0)<<"\n";
-			// cout<<"Motor[3]: "<<loe(3,0)<<"\n\n";
+
 			if(loe(0,0) >= 0.9f){
 				cout<<"########### Motor [1] failed ###########\n";
-				motor_failed_s motor_failed{};
 				motor_failed.motor_failed = 1 ;
 				motor_failed.timestamp = hrt_absolute_time();
 				_motor_failed_pub.publish(motor_failed);
@@ -842,7 +758,6 @@ void MulticopterPositionControl::Run()
 			}
 			else if(loe(1,0) >= 0.9f){
 				cout<<"########### Motor [2] failed ###########\n";
-				motor_failed_s motor_failed{};
 				motor_failed.motor_failed = 2 ;
 				motor_failed.timestamp = hrt_absolute_time();
 				_motor_failed_pub.publish(motor_failed);
@@ -850,7 +765,6 @@ void MulticopterPositionControl::Run()
 			}
 			else if(loe(2,0) >= 0.9f){
 				cout<<"########### Motor [3] failed ###########\n";
-				motor_failed_s motor_failed{};
 				motor_failed.motor_failed = 3 ;
 				motor_failed.timestamp = hrt_absolute_time();
 				_motor_failed_pub.publish(motor_failed);
@@ -858,7 +772,6 @@ void MulticopterPositionControl::Run()
 			}
 			else if(loe(3,0) >= 0.9f){
 				cout<<"########### Motor [4] failed ###########\n";
-				motor_failed_s motor_failed{};
 				motor_failed.motor_failed = 4 ;
 				motor_failed.timestamp = hrt_absolute_time();
 				_motor_failed_pub.publish(motor_failed);
@@ -881,6 +794,73 @@ void MulticopterPositionControl::Run()
 		loe_matrix.loe_matrix[3] = loe(3,0);
 		_loe_matrix_pub.publish(loe_matrix);
 
+		if(motor_failed.motor_failed){
+			matrix::geninv(_R, _R_inv);
+
+		g(0,0) = 0;
+		g(1,0) = 0;
+		g(2,0) = 9.81;
+
+		Tc = -1.535f*(_acc_setpoint(2,0) - g(2,0))/_R(2,2);
+		nd = _R_inv*((_acc_setpoint - g)/Tc);
+		nd *= 1.535;
+		temp = Vector3f(nd(0,0), nd(1,0), nd(2,0)).normalized();
+		nd(0,0) = temp(0);
+		nd(1,0) = temp(1);
+		nd(2,0) = temp(2);
+		// cout<<_vehicle_thrust_get.xyz[0]<<" "<<_vehicle_thrust_get.xyz[1]<<" "<<_vehicle_thrust_get.xyz[2]<<" "<<endl;
+		// cout<<_acc_setpoint(0,0)<<" "<<_acc_setpoint(1,0)<<" "<<_acc_setpoint(2,0)<<" "<<endl;
+
+		Pd = (nd(0,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0); //Sensor value
+		Qd = (nd(1,0) * _sensors_rpy_rate_get.rpy_rate[2])/nd(2,0); //Sensor value
+
+		P = _sensors_rpy_rate_get.rpy_rate[0];
+		Q = _sensors_rpy_rate_get.rpy_rate[1];
+
+		Vp = Kp_p*(-Pd + P) + Kd_p*(Pd - Pd_)/dt;
+		Vq = Kp_q*(-Qd + Q) + Kd_q*(Qd - Qd_)/dt;
+
+
+		Tx_sp = Txo_sp + Ix*(Vp-imu_angular_acc(0));
+		Ty_sp = Tyo_sp + Iy*(Vq-imu_angular_acc(1));
+
+		vehicle_torque_s vehicle_torque{};
+		vehicle_torque.timestamp = hrt_absolute_time();
+		vehicle_torque.tx= Tx_sp;
+		vehicle_torque.ty= Ty_sp;
+		_vehicle_torque_pub.publish(vehicle_torque);
+
+		Txo_sp = Tx_sp;
+		Tyo_sp = Ty_sp;
+
+		Pd_ = Pd;
+		Qd_ = Qd;
+
+		// cout<<(Ix*Vp-imu_angular_acc(0))<<" "<<(Iy*Vq-imu_angular_acc(1))<<"\n";
+		// cout<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
+		cout<<Tx_sp<<" "<<Ty_sp<<"\n";
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			// cout<<"nd : "<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
+		// cout<<"Vp : "<<Vp<<" "<<"Vq : "<<Vq<<"\n";
+		// cout<<"Tx_sp : "<<Tx_sp<<" "<<"Ty_sp : "<<Ty_sp<<"\n";
 		// Du_(0,0) = math::min(1/_actuator_speed_get.actuator_speed_sp[0],100.0f);
 		// Du_(1,1) = math::min(1/_actuator_speed_get.actuator_speed_sp[1],100.0f);
 		// Du_(2,2) = math::min(1/_actuator_speed_get.actuator_speed_sp[2],100.0f);
