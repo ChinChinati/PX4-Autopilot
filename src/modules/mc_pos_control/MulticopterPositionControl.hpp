@@ -78,7 +78,11 @@
 #include <uORB/topics/sensors_rpy_rate.h>
 #include <uORB/topics/vehicle_torque.h>
 #include <uORB/topics/vehicle_thrust.h>
+<<<<<<< HEAD
 #include <uORB/topics/primary_axes.h>
+=======
+#include <uORB/topics/vehicle_angular_velocity.h>
+>>>>>>> 5bd435d4e6 (kkk)
 
 
 using namespace time_literals;

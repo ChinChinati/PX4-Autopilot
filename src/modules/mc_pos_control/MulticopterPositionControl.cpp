@@ -704,6 +704,8 @@ void MulticopterPositionControl::Run()
 		_actuator_speed_sub.update(&_actuator_speed_get);
 		_vehicle_status_sub.update(&_vehicle_status_get);
 
+		_vehicle_angular_velocity_sub.update(&_vehicle_angular_velocity_get);
+
 		matrix::Vector3f pos = states.position;
 		float low_point = 0.1; //height in m below which loe will be disabled
 		// cout<<"Pos"<<" "<<pos(0)<<" "<<pos(1)<<" "<<pos(2)<<"\n";
@@ -818,23 +820,6 @@ void MulticopterPositionControl::Run()
 		_primary_axes_pub.publish(primary_axes);
 
 		}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 			// cout<<"nd : "<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
 		// cout<<"Vp : "<<Vp<<" "<<"Vq : "<<Vq<<"\n";
