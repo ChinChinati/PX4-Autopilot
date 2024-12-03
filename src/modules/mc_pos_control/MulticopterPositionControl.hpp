@@ -79,10 +79,14 @@
 #include <uORB/topics/vehicle_torque.h>
 #include <uORB/topics/vehicle_thrust.h>
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include <uORB/topics/primary_axes.h>
 =======
 #include <uORB/topics/vehicle_angular_velocity.h>
 >>>>>>> 5bd435d4e6 (kkk)
+=======
+#include <uORB/topics/vehicle_angular_velocity.h>
+>>>>>>> origin/main
 
 
 using namespace time_literals;
@@ -145,6 +149,13 @@ public:
 		Kp_q = 1,
 		Kd_p = .01,
 		Kd_q = .01;
+<<<<<<< HEAD
+=======
+	// float Kp_p = 1.,
+	// 	Kp_q = 1.,
+	// 	Kd_p = .1,
+	// 	Kd_q = .1;
+>>>>>>> origin/main
 	// ####################################################
 
 	// ##########################################################
@@ -190,6 +201,13 @@ private:
 	uORB::Subscription _computed_thrust_sub{ORB_ID(computed_thrust)};
 	uORB::Subscription _sensor_rpy_rate_sub{ORB_ID(sensors_rpy_rate)};
 	uORB::Subscription _vehicle_thrust_sub{ORB_ID(vehicle_thrust)};
+<<<<<<< HEAD
+=======
+	uORB::Subscription _vehicle_angular_velocity_sub{ORB_ID(vehicle_angular_velocity)};
+
+
+
+>>>>>>> origin/main
 	//######################################################
 
 	hrt_abstime _time_stamp_last_loop{0};		/**< time stamp of last loop iteration */
@@ -215,7 +233,19 @@ private:
 		.maybe_landed = true,
 		.landed = true,
 	};
+<<<<<<< HEAD
 	// ######################################################### 
+=======
+	// #########################################################
+	vehicle_angular_velocity_s _vehicle_angular_velocity_get {
+		.timestamp = 0,
+		.timestamp_sample = 0,
+		.xyz = {0.0,0.0,0.0},
+
+		.xyz_derivative = {0.0,0.0,0.0},
+	};
+
+>>>>>>> origin/main
 	sensors_rpy_rate_s _sensors_rpy_rate_get{
 		.timestamp = 0,
 		.rpy_rate = {0.0,0.0,0.0},
