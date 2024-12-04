@@ -70,7 +70,7 @@ bool MulticopterPositionControl::init()
 
 
 
-	// ###################################################################################### 
+	// ######################################################################################
 
 	// Loss Of Effectiveness
 	_mix(0,0) = -0.495384;
@@ -804,10 +804,11 @@ void MulticopterPositionControl::Run()
 		Tc = -1.535f*(_acc_setpoint(2,0) - g(2,0))/_R(2,2);
 		nd = _R_inv*((_acc_setpoint - g)/Tc);
 		nd *= 1.535;
-		// temp = Vector3f(nd(0,0), nd(1,0), nd(2,0)).normalized();
-		// nd(0,0) = temp(0);
-		// nd(1,0) = temp(1);
-		// nd(2,0) = temp(2);
+		cout<<"Tc: "<<Tc<<endl;
+		temp = Vector3f(nd(0,0), nd(1,0), nd(2,0)).normalized();
+		nd(0,0) = temp(0);
+		nd(1,0) = temp(1);
+		nd(2,0) = temp(2);
 		// cout<<_vehicle_thrust_get.xyz[0]<<" "<<_vehicle_thrust_get.xyz[1]<<" "<<_vehicle_thrust_get.xyz[2]<<" "<<endl;
 		// cout<<_acc_setpoint(0,0)<<" "<<_acc_setpoint(1,0)<<" "<<_acc_setpoint(2,0)<<" "<<endl;
 		primary_axes_s primary_axes{};
@@ -815,6 +816,7 @@ void MulticopterPositionControl::Run()
 		primary_axes.nd[0] = nd(0,0);
 		primary_axes.nd[1] = nd(1,0);
 		primary_axes.nd[2] = nd(2,0);
+		primary_axes.tc = Tc;
 		_primary_axes_pub.publish(primary_axes);
 
 		}

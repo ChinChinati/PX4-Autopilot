@@ -34,7 +34,7 @@
 /**
  * @file PositionControl.cpp
  */
-
+#include<bits/stdc++.h>
 #include "PositionControl.hpp"
 #include "ControlMath.hpp"
 #include <float.h>
@@ -43,6 +43,7 @@
 #include <geo/geo.h>
 
 using namespace matrix;
+using namespace std;
 
 const trajectory_setpoint_s PositionControl::empty_trajectory_setpoint = {0, {NAN, NAN, NAN}, {NAN, NAN, NAN}, {NAN, NAN, NAN}, {NAN, NAN, NAN}, NAN, NAN};
 

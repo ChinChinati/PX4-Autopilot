@@ -73,6 +73,7 @@ ControlAllocationSequentialDesaturation::allocate()
 	}
 	else if( _motor_failed_get.motor_failed == 1){
 		motor_failed_1();
+		// testing();
 	}
 	else if( _motor_failed_get.motor_failed == 2){
 		motor_failed_2();
@@ -233,7 +234,7 @@ ControlAllocationSequentialDesaturation::mixAirmodeDisabled()
 	// std::cout<<std::endl;
 	// only reduce thrust
 	desaturateActuators(_actuator_sp, thrust_z, true);
-
+	// cout<<_control_sp(ControlAxis::THRUST_Z)<<" control_sp"<<endl;
 	// Reduce roll/pitch acceleration if needed to unsaturate
 	desaturateActuators(_actuator_sp, roll);
 	desaturateActuators(_actuator_sp, pitch);
@@ -291,10 +292,10 @@ ControlAllocationSequentialDesaturation::mixYaw()
 
 void
 ControlAllocationSequentialDesaturation:: testing(){
-	_actuator_sp(0) = -1.0f;
-	_actuator_sp(1) = -1.0f;
-	_actuator_sp(2) = -1.0f;
-	_actuator_sp(3) = -1.0f;
+	_actuator_sp(0) = .0f;
+	_actuator_sp(1) = .0f;
+	_actuator_sp(2) = .65f;
+	_actuator_sp(3) = .65f;
 
 	// cout<<"testing"<<endl;
 	// cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl;
@@ -305,15 +306,25 @@ void
 ControlAllocationSequentialDesaturation:: motor_failed_1(){
 	matrix::Matrix<float, 3, 3> _mix_updated;
 	// Mine Modification then inverse
-	_mix_updated(0,0) = 0.41025641026;
-	_mix_updated(1,0) = 0;
-	_mix_updated(2,0) = -0.41025641026;
-	_mix_updated(0,1) = -0.58559702124;
-	_mix_updated(1,1) = 0.507743082;
-	_mix_updated(2,1) = -0.07692307692;
-	_mix_updated(0,2) = 0.01179487179;
-	_mix_updated(1,2) = -0.07692307692;
-	_mix_updated(2,2) = -0.08871794872;
+	// _mix_updated(0,0) = 0.41025641026;
+	// _mix_updated(1,0) = 0;
+	// _mix_updated(2,0) = -0.41025641026;
+	// _mix_updated(0,1) = -0.58559702124;
+	// _mix_updated(1,1) = 0.507743082;
+	// _mix_updated(2,1) = -0.07692307692;
+	// _mix_updated(0,2) = 0.01179487179;
+	// _mix_updated(1,2) = -0.07692307692;
+	// _mix_updated(2,2) = -0.08871794872;
+
+	_mix_updated(0,0) = 0.41025641026/0.6349;
+	_mix_updated(1,0) = 0/0.6349;
+	_mix_updated(2,0) = -0.41025641026/0.6349;
+	_mix_updated(0,1) = -0.58559702124/0.6349;
+	_mix_updated(1,1) = 0.507743082/0.6349;
+	_mix_updated(2,1) = -0.07692307692/0.6349;
+	_mix_updated(0,2) = 0.01179487179/0.0591;
+	_mix_updated(1,2) = -0.07692307692/0.0591;
+	_mix_updated(2,2) = -0.08871794872/0.0591;
 
 	// Suryuanshu Direct MIX modification [USELESS]
 	// _mix_updated(0,0) = 0.707107;
@@ -326,39 +337,39 @@ ControlAllocationSequentialDesaturation:: motor_failed_1(){
 	// _mix_updated(1,2) = -1;
 	// _mix_updated(2,2) = -1;
 
-	// ActuatorVector thrust_z;
-	// ActuatorVector roll;
-	// ActuatorVector pitch;
+	ActuatorVector thrust_z;
+	ActuatorVector roll;
+	ActuatorVector pitch;
 
 	// cout<<_vehicle_torque_get.tx<<endl;
 
 	for (int i = 0; i < 4; i++) {
 		if(i==0){
 			_actuator_sp(i) = 0;
+			// thrust_z(i) = 0;
+			// roll(i) = 0;
+			// pitch(i) = 0;
 			continue;
 		}
 
-		_actuator_sp(i) = (_mix_updated(i-1, 0)*_vehicle_torque_get.tx) + (_mix_updated(i-1, 1)*_vehicle_torque_get.ty) + (_mix_updated(i-1, 2)*_control_sp(ControlAxis::THRUST_Z));
-		// thrust_z(i) = _mix_updated(i-1, 2);
-		// roll(i) = _mix_updated(i-1, ControlAxis::ROLL);
-		// pitch(i) = _mix_updated(i-1, ControlAxis::PITCH);
+		_actuator_sp(i) = (_mix_updated(i-1, 0)*_vehicle_torque_get.tx*0.5f) + (_mix_updated(i-1, 1)*_vehicle_torque_get.ty*0.5f) + (_mix_updated(i-1, 2)*_control_sp(ControlAxis::THRUST_Z)*1.6f);
+
+		//BEST WORKING coNSTANTS for controlled landing
+		// _actuator_sp(i) = (_mix_updated(i-1, 0)*_vehicle_torque_get.tx*0.01f) + (_mix_updated(i-1, 1)*_vehicle_torque_get.ty*0.01f) + (_mix_updated(i-1, 2)*(-_vehicle_torque_get.tc*0.3f));
+
+		// _actuator_sp(i) = (_mix_updated(i-1, 0)*_vehicle_torque_get.tx*0.01f) + (_mix_updated(i-1, 1)*_vehicle_torque_get.ty*0.01f) + (_mix_updated(i-1, 2)*(-_vehicle_torque_get.tc*0.42f));
+		// thrust_z(i) = _mix(i-1, 2);
+		// roll(i) = _mix(i-1, 0);
+		// pitch(i) = _mix(i-1, 1);
+
+
 	}
 	// cout<<_control_sp(ControlAxis::THRUST_Z)<<" control_sp"<<endl;
 	// desaturateActuators(_actuator_sp, thrust_z, true);
-	// temp = matrix::Vector3f(_actuator_sp(1),_actuator_sp(2),_actuator_sp(3)).normalized();
-	// _actuator_sp(1) = temp(0);
-	// _actuator_sp(2) = temp(1);
-	// _actuator_sp(3) = temp(2);
-	// _actuator_s /= 1.414f;
-	// // Base thrust of 3 actuator required 0.808290377 each
-	// _actuator_sp(1) += .7f;
-	// _actuator_sp(2) += .7f;
-	// _actuator_sp(3) += .7f;
-	// // Reduce roll/pitch acceleration if needed to unsaturate
 	// desaturateActuators(_actuator_sp, roll);
 	// desaturateActuators(_actuator_sp, pitch);
 	// cout<<_vehicle_torque_get.tx<<" "<<_vehicle_torque_get.tx<<endl;
-	//cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl;
+	cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl<<endl;
 
 	// Mix yaw independently
 	// mixYaw();

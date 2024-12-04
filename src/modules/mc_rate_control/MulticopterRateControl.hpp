@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include <lib/rate_control/rate_control.hpp> 
+#include <lib/rate_control/rate_control.hpp>
 #include <lib/matrix/matrix/math.hpp>
 #include <lib/perf/perf_counter.h>
 #include <px4_platform_common/defines.h>
@@ -93,6 +93,8 @@ public:
 	float Qd;
 	float Pd_;
 	float Qd_;
+	float Pd_dot;
+	float Qd_dot;
 	float Tx_sp=0;
 	float Ty_sp=0;
 	float Txo_sp=0;
@@ -101,10 +103,12 @@ public:
 	float Vq;
 	float P;
 	float Q;
-	float Kp_p = 0.1,
-		Kp_q = 0.1,
-		Kd_p = .01,
-		Kd_q = .01;
+	float Kp_p = 1.00,
+		Kp_q = 1.,
+		Kd_p = .1,
+		Kd_q = .1,
+		kff_p =1,
+		kff_q=1;
 	// ###########################################################
 
 private:
@@ -152,6 +156,7 @@ private:
 	primary_axes_s _primary_axes_get{
 		.timestamp = 0,
 		.nd ={0.0,0.0,0.0},
+		.tc = 0.0,
 	};
 
 	motor_failed_s _motor_failed_get {

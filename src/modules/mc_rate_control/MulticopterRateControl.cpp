@@ -31,14 +31,15 @@
  *
  ****************************************************************************/
 
-#include "MulticopterRateControl.hpp" 
+#include "MulticopterRateControl.hpp"
 
 #include <drivers/drv_hrt.h>
 #include <circuit_breaker/circuit_breaker.h>
 #include <mathlib/math/Limits.hpp>
 #include <mathlib/math/Functions.hpp>
 #include <px4_platform_common/events.h>
-
+#include <bits/stdc++.h>
+using namespace std;
 using namespace matrix;
 using namespace time_literals;
 using math::radians;
@@ -265,7 +266,7 @@ MulticopterRateControl::Run()
 		// ##############################################################
 		  			//Motor Failure Sub
 		_motor_failed_sub.update(&_motor_failed_get);
-		if(_motor_failed_get.motor_failed != 0){
+		if(_motor_failed_get.motor_failed){
 			//  SUBSCRIPTION UPDATES
 					//Angular Velocity
 			// _vehicle_angular_velocity_sub1.update(&_vehicle_angular_velocity_get);
@@ -276,7 +277,7 @@ MulticopterRateControl::Run()
 			nd(0,0) = _primary_axes_get.nd[0];
 			nd(1,0) = _primary_axes_get.nd[1];
 			nd(2,0) = _primary_axes_get.nd[2];
-			
+
 
 			Pd = (nd(0,0) * angular_velocity.xyz[2])/nd(2,0); //Sensor value
 			Qd = (nd(1,0) * angular_velocity.xyz[2])/nd(2,0); //Sensor value
@@ -284,27 +285,39 @@ MulticopterRateControl::Run()
 			P = angular_velocity.xyz[0];
 			Q = angular_velocity.xyz[1];
 
-			Vp = Kp_p*(-Pd + P) + Kd_p*(Pd - Pd_)/dt;
-			Vq = Kp_q*(-Qd + Q) + Kd_q*(Qd - Qd_)/dt; 
-
-
+			Vp = Kp_p*(Pd-P) + Kd_p*(Pd - Pd_)/dt;
+			Vq = Kp_q*(Qd-Q) + Kd_q*(Qd - Qd_)/dt;
+			// Pd_dot = ((Iy-Iz)/Ix)*Qd*angular_velocity.xyz[2];
+			// Qd_dot = ((Iz-Ix)/Iy)*Pd*angular_velocity.xyz[2];
 			Tx_sp = Txo_sp + Ix*(Vp-angular_velocity.xyz_derivative[0]);
 			Ty_sp = Tyo_sp + Iy*(Vq-angular_velocity.xyz_derivative[1]);
+			cout<<"P: "<<P<<" Q: "<<Q<<endl;
+			cout<<"Vp: "<<Vp<<" Vq: "<<Vq<<endl;
+			cout<<"Sensor Value: "<<angular_velocity.xyz_derivative[0]<<" "<<angular_velocity.xyz_derivative[1]<<endl;
+			cout<<"Tx: "<<Tx_sp<<" Ty: "<<Ty_sp<<endl;
 
+
+			// if(Tx_sp>1) Tx_sp =1.0;
+			// if(Tx_sp<-1) Tx_sp =-1.0;
+			// if(Ty_sp<-1) Ty_sp =-1.0;
+			// if(Ty_sp>1) Ty_sp =1.0;
 			vehicle_torque_s vehicle_torque{};
 			vehicle_torque.timestamp = hrt_absolute_time();
 			vehicle_torque.tx= Tx_sp;
 			vehicle_torque.ty= Ty_sp;
+			vehicle_torque.tc= _primary_axes_get.tc;
+			// vehicle_torque.tx= -1;
+			// vehicle_torque.ty= 0;
 			_vehicle_torque_pub.publish(vehicle_torque);
 
-			Txo_sp = Tx_sp;
-			Tyo_sp = Ty_sp;
+			// Txo_sp = Tx_sp;
+			// Tyo_sp = Ty_sp;
 
 			Pd_ = Pd;
 			Qd_ = Qd;
 
 			// cout<<nd(0,0)<<" "<<nd(1,0)<<" "<<nd(2,0)<<"\n";
-			std::cout<<Tx_sp<<" "<<Ty_sp<<"\n";
+
 		}
 		// ########################################################################
 	}
