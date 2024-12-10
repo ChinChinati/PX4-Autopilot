@@ -62,6 +62,7 @@
 #include <uORB/topics/vehicle_torque.h>
 #include <uORB/topics/primary_axes.h>
 #include <uORB/topics/motor_failed.h>
+#include <uORB/topics/v1v2_values.h>
 #include <uORB/topics/vehicle_angular_velocity.h>
 #include <iostream>
 
@@ -85,6 +86,7 @@ public:
 	bool init();
 	// ###########################################################
 	matrix::Matrix<float, 3, 1> nd; // nx, ny, nz
+	matrix::Matrix<float, 3, 1> n; // nx, ny, nz
 	double Tc=0;
 	float Ix=0.029125;
 	float Iy=0.029125;
@@ -103,12 +105,22 @@ public:
 	float Vq;
 	float P;
 	float Q;
-	float Kp_p = 1.00,
-		Kp_q = 1.,
-		Kd_p = .1,
-		Kd_q = .1,
+	float v1;
+	float v2;
+	
+	float Kp_p = 3.00,
+		Kp_q = 3.,
+		Kd_p = 0.02, // 0,1 or 0.2
+		Kd_q = 0.02,
 		kff_p =1,
 		kff_q=1;
+	// float Kp_p = 1.00,
+	// 	Kp_q = 1.,
+	// 	Kd_p = 0.1, // 0,1 or 0.2
+	// 	Kd_q = 0.1,
+	// 	kff_p =1,
+	// 	kff_q=1;
+
 	// ###########################################################
 
 private:
@@ -133,6 +145,7 @@ private:
 	// ##########################################################################
 	uORB::Subscription _primary_axes_sub{ORB_ID(primary_axes)};
 	uORB::Subscription _motor_failed_sub{ORB_ID(motor_failed)};
+	uORB::Subscription _v1v2_values_sub{ORB_ID(v1v2_values)};
 	// uORB::Subscription _vehicle_angular_velocity_sub1{ORB_ID(vehicle_angular_velocity)};
 	// not used as already a SubscriptionCallbackWorkItem Made for that topic
 	// ##########################################################################
@@ -169,6 +182,12 @@ private:
 		.timestamp_sample = 0,
 		.xyz = {0.0,0.0,0.0},
 		.xyz_derivative = {0.0,0.0,0.0},
+	};
+
+	v1v2_values_s _v1v2_values_get {
+		.timestamp=0,
+		.v1 = 0.0 ,
+		.v2 = 0.0 ,
 	};
 	// ##########################################################################
 

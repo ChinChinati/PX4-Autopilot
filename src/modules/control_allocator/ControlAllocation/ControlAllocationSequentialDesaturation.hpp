@@ -56,7 +56,8 @@
 class ControlAllocationSequentialDesaturation: public ControlAllocationPseudoInverse, public ModuleParams
 {
 public:
-
+	float tx, ty;
+	float Tc;
 	ControlAllocationSequentialDesaturation() : ModuleParams(nullptr) {}
 	virtual ~ControlAllocationSequentialDesaturation() = default;
 

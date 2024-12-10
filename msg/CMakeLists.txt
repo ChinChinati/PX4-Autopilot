@@ -241,6 +241,7 @@ set(msg_files
 	UlogStream.msg
 	UlogStreamAck.msg
 	UnregisterExtComponent.msg
+	v1v2Values.msg
 	VehicleAcceleration.msg
 	VehicleAirData.msg
 	VehicleAngularAccelerationSetpoint.msg

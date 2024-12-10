@@ -80,6 +80,7 @@
 #include <uORB/topics/vehicle_thrust.h>
 #include <uORB/topics/vehicle_angular_velocity.h>
 #include <uORB/topics/primary_axes.h>
+#include<uORB/topics/v1v2_values.h>
 
 using namespace time_literals;
 
@@ -104,7 +105,7 @@ public:
 	// ###################################################
 	motor_failed_s motor_failed{};
 	bool flag = true;
-	matrix::Vector3f acc;
+	matrix::Vector3f computed_thrust;
 	matrix::Vector3f _acc_sp;
 	matrix::Vector3f imu_angular_acc;
 	matrix::Vector3f acc_new;
@@ -115,6 +116,7 @@ public:
 	matrix::Matrix<float, 4, 1> T; //T
 	matrix::Matrix<float, 4, 1> loe; //[ l1 l2 l3 l4]^T
 	matrix::Matrix<float, 3, 1> nd; // nx, ny, nz
+	matrix::Matrix<float, 3, 1> n; // nx, ny, nz
 	matrix::Matrix<float, 3, 1> _acc_setpoint;
 	matrix::Matrix<float, 3, 1> g;
 	matrix::Matrix<float, 3, 3> _R;
@@ -122,6 +124,9 @@ public:
 	matrix::Vector3f _thr;
 	matrix::Vector3f temp;
 	double Tc=0;
+	double T_=0;
+	double v1 = 0;
+	double v2 = 0;
 	float Ix=0.029125;
 	float Iy=0.029125;
 	float Iz=0.055225;
@@ -141,6 +146,17 @@ public:
 		Kp_q = 1,
 		Kd_p = .01,
 		Kd_q = .01;
+	// Min Limits
+	// float k1 = 10000000;
+	// float k2 = 10000000;
+
+	// Max Limits
+	// float k1 = 100000000;
+	// float k2 = 100000000;
+
+	float k1 = 4*10000000;
+	float k2 = 4*10000000;
+
 	// ####################################################
 
 	// ##########################################################
@@ -164,6 +180,7 @@ private:
 	uORB::Publication<motor_failed_s> _motor_failed_pub{ORB_ID(motor_failed)};
 	uORB::Publication<vehicle_torque_s> _vehicle_torque_pub{ORB_ID(vehicle_torque)};
 	uORB::Publication<primary_axes_s> _primary_axes_pub{ORB_ID(primary_axes)};
+	uORB::Publication<v1v2_values_s> _v1v2_values_pub{ORB_ID(v1v2_values)};
 	// ##################################################
 
 	uORB::SubscriptionCallbackWorkItem _local_pos_sub{this, ORB_ID(vehicle_local_position)};	/**< vehicle local position */
@@ -177,7 +194,7 @@ private:
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
 
 	// #####################################################
-	uORB::Subscription _computed_torque_sub{ORB_ID(computed_torque)}; 
+	uORB::Subscription _computed_torque_sub{ORB_ID(computed_torque)};
 	uORB::Subscription _actuator_speed_sub{ORB_ID(actuator_speed)};
 	uORB::Subscription _vehicle_acceleration_sub{ORB_ID(vehicle_acceleration)};
 	uORB::Subscription _takeoff_status_sub{ORB_ID(takeoff_status)};
@@ -211,7 +228,7 @@ private:
 		.maybe_landed = true,
 		.landed = true,
 	};
-	// ######################################################### 
+	// #########################################################
 	sensors_rpy_rate_s _sensors_rpy_rate_get{
 		.timestamp = 0,
 		.rpy_rate = {0.0,0.0,0.0},

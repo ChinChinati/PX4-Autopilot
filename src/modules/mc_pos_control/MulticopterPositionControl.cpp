@@ -692,7 +692,7 @@ void MulticopterPositionControl::Run()
 		_computed_torque_sub.update(&_computed_torque_get);
 
 				//Thrust
-		acc = _control._compute_thrust(states);
+		computed_thrust = _control._compute_thrust(states);
 		_vehicle_thrust_sub.update(&_vehicle_thrust_get);
 
 				//Takeoff Status
@@ -718,6 +718,8 @@ void MulticopterPositionControl::Run()
 		// cout<<_setpoint<<"\n";
 		_acc_setpoint(0,0) = _acc_sp(0);
 		_acc_setpoint(1,0) = _acc_sp(1);
+		// _acc_setpoint(0,0) = 0.f;
+		// _acc_setpoint(1,0) = 0.f;
 		_acc_setpoint(2,0) = _acc_sp(2);
 		_R(0,0) = _rotation_matrix_get.matrix[0];
 		_R(1,0) = _rotation_matrix_get.matrix[1];
@@ -738,7 +740,7 @@ void MulticopterPositionControl::Run()
 			T(0,0) = _computed_torque_get.computed_torque[0];
 			T(1,0) = _computed_torque_get.computed_torque[1];
 			T(2,0) = _computed_torque_get.computed_torque[2];
-			T(3,0) = acc(2);
+			T(3,0) = computed_thrust(2);
 
 			A_ = Du_*_mix;
 
@@ -801,23 +803,45 @@ void MulticopterPositionControl::Run()
 		g(1,0) = 0;
 		g(2,0) = 9.81;
 
+
+		// Desired Primary Axis
 		Tc = -1.535f*(_acc_setpoint(2,0) - g(2,0))/_R(2,2);
 		nd = _R_inv*((_acc_setpoint - g)/Tc);
 		nd *= 1.535;
-		cout<<"Tc: "<<Tc<<endl;
 		temp = Vector3f(nd(0,0), nd(1,0), nd(2,0)).normalized();
 		nd(0,0) = temp(0);
 		nd(1,0) = temp(1);
 		nd(2,0) = temp(2);
+
+		// Current Primary Axis
+		T_ = -1.535f*(-states.acceleration(2) - g(2,0))/_R(2,2);
+		n = _R_inv*((_acc_setpoint - g)/T_);
+		n *= 1.535;
+		temp = Vector3f(n(0,0), n(1,0), n(2,0)).normalized();
+		n(0,0) = temp(0);
+		n(1,0) = temp(1);
+		n(2,0) = temp(2);
+
+
+		v1 = k1*(nd(0,0) - n(0,0));
+		v2 = k2*(nd(1,0) - n(1,0));
+
+		// cout<<"v1: "<<v1<<endl;
+		// cout<<"v2: "<<v2<<endl;
+		v1v2_values_s v1v2_values{};
+		v1v2_values.timestamp= hrt_absolute_time();
+		v1v2_values.v1=v1;
+		v1v2_values.v2=v2;
+		_v1v2_values_pub.publish(v1v2_values);
 		// cout<<_vehicle_thrust_get.xyz[0]<<" "<<_vehicle_thrust_get.xyz[1]<<" "<<_vehicle_thrust_get.xyz[2]<<" "<<endl;
 		// cout<<_acc_setpoint(0,0)<<" "<<_acc_setpoint(1,0)<<" "<<_acc_setpoint(2,0)<<" "<<endl;
-		primary_axes_s primary_axes{};
-		primary_axes.timestamp = hrt_absolute_time();
-		primary_axes.nd[0] = nd(0,0);
-		primary_axes.nd[1] = nd(1,0);
-		primary_axes.nd[2] = nd(2,0);
-		primary_axes.tc = Tc;
-		_primary_axes_pub.publish(primary_axes);
+		primary_axes_s values_from_position_control{};
+		values_from_position_control.timestamp = hrt_absolute_time();
+		values_from_position_control.nd[0] = nd(0,0);
+		values_from_position_control.nd[1] = nd(1,0);
+		values_from_position_control.nd[2] = nd(2,0);
+		values_from_position_control.tc = pos(2);
+		_primary_axes_pub.publish(values_from_position_control);
 
 		}
 

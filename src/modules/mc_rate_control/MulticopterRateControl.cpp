@@ -278,9 +278,16 @@ MulticopterRateControl::Run()
 			nd(1,0) = _primary_axes_get.nd[1];
 			nd(2,0) = _primary_axes_get.nd[2];
 
+			_v1v2_values_sub.update(&_v1v2_values_get);
+			v1= _v1v2_values_get.v1;
+			v2= _v1v2_values_get.v2;
 
-			Pd = (nd(0,0) * angular_velocity.xyz[2])/nd(2,0); //Sensor value
-			Qd = (nd(1,0) * angular_velocity.xyz[2])/nd(2,0); //Sensor value
+			Pd = (nd(0,0) * angular_velocity.xyz[2] + v2)/nd(2,0); //Sensor value
+			Qd = (nd(1,0) * angular_velocity.xyz[2] - v1)/nd(2,0); //Sensor value
+
+			cout<<"\nv1: "<<v1<<"\nv2: "<<v2<<"\n";
+			cout<<"nyY: "<<(nd(1,0) * angular_velocity.xyz[2])<<endl;
+			cout<<"nxY: "<<(nd(0,0) * angular_velocity.xyz[2])<<endl;
 
 			P = angular_velocity.xyz[0];
 			Q = angular_velocity.xyz[1];
@@ -291,10 +298,10 @@ MulticopterRateControl::Run()
 			// Qd_dot = ((Iz-Ix)/Iy)*Pd*angular_velocity.xyz[2];
 			Tx_sp = Txo_sp + Ix*(Vp-angular_velocity.xyz_derivative[0]);
 			Ty_sp = Tyo_sp + Iy*(Vq-angular_velocity.xyz_derivative[1]);
-			cout<<"P: "<<P<<" Q: "<<Q<<endl;
-			cout<<"Vp: "<<Vp<<" Vq: "<<Vq<<endl;
-			cout<<"Sensor Value: "<<angular_velocity.xyz_derivative[0]<<" "<<angular_velocity.xyz_derivative[1]<<endl;
-			cout<<"Tx: "<<Tx_sp<<" Ty: "<<Ty_sp<<endl;
+			// cout<<"P: "<<P<<" Q: "<<Q<<endl;
+			// cout<<"Vp: "<<Vp<<" Vq: "<<Vq<<endl;
+			// cout<<"Sensor Value: "<<angular_velocity.xyz_derivative[0]<<" "<<angular_velocity.xyz_derivative[1]<<endl;
+			// cout<<"Tx: "<<Tx_sp<<" Ty: "<<Ty_sp<<endl;
 
 
 			// if(Tx_sp>1) Tx_sp =1.0;

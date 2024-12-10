@@ -70,20 +70,20 @@ ControlAllocationSequentialDesaturation::allocate()
 			// testing();
 			break;
 		}
-	}
-	else if( _motor_failed_get.motor_failed == 1){
-		motor_failed_1();
-		// testing();
-	}
-	else if( _motor_failed_get.motor_failed == 2){
-		motor_failed_2();
-	}
-	else if( _motor_failed_get.motor_failed == 3){
-		motor_failed_3();
-	}
-	else if( _motor_failed_get.motor_failed == 4){
-		motor_failed_4();
-	}
+		}
+		else if( _motor_failed_get.motor_failed == 1){
+			motor_failed_1();
+			// testing();
+		}
+		else if( _motor_failed_get.motor_failed == 2){
+			motor_failed_2();
+		}
+		else if( _motor_failed_get.motor_failed == 3){
+			motor_failed_3();
+		}
+		else if( _motor_failed_get.motor_failed == 4){
+			motor_failed_4();
+		}
 	// ####################################
 
 	// switch (_param_mc_airmode.get()) {
@@ -305,16 +305,6 @@ ControlAllocationSequentialDesaturation:: testing(){
 void
 ControlAllocationSequentialDesaturation:: motor_failed_1(){
 	matrix::Matrix<float, 3, 3> _mix_updated;
-	// Mine Modification then inverse
-	// _mix_updated(0,0) = 0.41025641026;
-	// _mix_updated(1,0) = 0;
-	// _mix_updated(2,0) = -0.41025641026;
-	// _mix_updated(0,1) = -0.58559702124;
-	// _mix_updated(1,1) = 0.507743082;
-	// _mix_updated(2,1) = -0.07692307692;
-	// _mix_updated(0,2) = 0.01179487179;
-	// _mix_updated(1,2) = -0.07692307692;
-	// _mix_updated(2,2) = -0.08871794872;
 
 	_mix_updated(0,0) = 0.41025641026/0.6349;
 	_mix_updated(1,0) = 0/0.6349;
@@ -326,101 +316,125 @@ ControlAllocationSequentialDesaturation:: motor_failed_1(){
 	_mix_updated(1,2) = -0.07692307692/0.0591;
 	_mix_updated(2,2) = -0.08871794872/0.0591;
 
-	// Suryuanshu Direct MIX modification [USELESS]
-	// _mix_updated(0,0) = 0.707107;
-	// _mix_updated(1,0) = -0.707107;
-	// _mix_updated(2,0) = 0.707107;
-	// _mix_updated(0,1) = 0.765306;
-	// _mix_updated(1,1) = 1;
-	// _mix_updated(2,1) = -0.765306;
-	// _mix_updated(0,2) = -1;
-	// _mix_updated(1,2) = -1;
-	// _mix_updated(2,2) = -1;
-
-	ActuatorVector thrust_z;
-	ActuatorVector roll;
-	ActuatorVector pitch;
-
-	// cout<<_vehicle_torque_get.tx<<endl;
+	float t_bias = 0.5;
+	float torq_factor = 1.3;
+	float t_limit = 10;
+	tx = _vehicle_torque_get.tx;
+	ty = _vehicle_torque_get.ty;
+	if(abs(tx)>t_limit)
+		tx = tx/abs(tx)*t_limit;
+	if( abs(ty)>t_limit)
+		ty = ty/abs(ty)*t_limit;
 
 	for (int i = 0; i < 4; i++) {
 		if(i==0){
 			_actuator_sp(i) = 0;
-			// thrust_z(i) = 0;
-			// roll(i) = 0;
-			// pitch(i) = 0;
 			continue;
 		}
 
-		_actuator_sp(i) = (_mix_updated(i-1, 0)*_vehicle_torque_get.tx*0.5f) + (_mix_updated(i-1, 1)*_vehicle_torque_get.ty*0.5f) + (_mix_updated(i-1, 2)*_control_sp(ControlAxis::THRUST_Z)*1.6f);
-
-		//BEST WORKING coNSTANTS for controlled landing
-		// _actuator_sp(i) = (_mix_updated(i-1, 0)*_vehicle_torque_get.tx*0.01f) + (_mix_updated(i-1, 1)*_vehicle_torque_get.ty*0.01f) + (_mix_updated(i-1, 2)*(-_vehicle_torque_get.tc*0.3f));
-
-		// _actuator_sp(i) = (_mix_updated(i-1, 0)*_vehicle_torque_get.tx*0.01f) + (_mix_updated(i-1, 1)*_vehicle_torque_get.ty*0.01f) + (_mix_updated(i-1, 2)*(-_vehicle_torque_get.tc*0.42f));
-		// thrust_z(i) = _mix(i-1, 2);
-		// roll(i) = _mix(i-1, 0);
-		// pitch(i) = _mix(i-1, 1);
-
+		_actuator_sp(i) = (_mix_updated(i-1, 0)*tx*t_bias) + (_mix_updated(i-1, 1)*ty*t_bias) + (_mix_updated(i-1, 2)*_control_sp(ControlAxis::THRUST_Z)*torq_factor);
 
 	}
-	// cout<<_control_sp(ControlAxis::THRUST_Z)<<" control_sp"<<endl;
-	// desaturateActuators(_actuator_sp, thrust_z, true);
-	// desaturateActuators(_actuator_sp, roll);
-	// desaturateActuators(_actuator_sp, pitch);
-	// cout<<_vehicle_torque_get.tx<<" "<<_vehicle_torque_get.tx<<endl;
-	cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl<<endl;
-
-	// Mix yaw independently
-	// mixYaw();
+	if(_actuator_sp.max()>1)
+	_actuator_sp /= _actuator_sp.max();
+	// cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl;
 
 }
 
 void
 ControlAllocationSequentialDesaturation::motor_failed_2(){
 	matrix::Matrix<float, 3, 3> _mix_updated;
-	_mix_updated(0,0) = -0.31397174254;
-	_mix_updated(1,0) = 0.31397174254;
-	_mix_updated(2,0) = 0;
-	_mix_updated(0,1) = 0.44816098564;
-	_mix_updated(1,1) = 0.05958209636;
-	_mix_updated(2,1) = -0.507743082;
-	_mix_updated(0,2) = -0.0090266876;
-	_mix_updated(1,2) = -0.06789638932;
-	_mix_updated(2,2) = -0.07692307692;
+	_mix_updated(0,0) = -0.31397174254/0.555098;
+	_mix_updated(1,0) = 0.31397174254/0.555098;
+	_mix_updated(2,0) = 0/0.555098;
+	_mix_updated(0,1) = 0.44816098564/0.555098;
+	_mix_updated(1,1) = 0.05958209636/0.555098;
+	_mix_updated(2,1) = -0.507743082/0.555098;
+	_mix_updated(0,2) = -0.0090266876/0.0512821;
+	_mix_updated(1,2) = -0.06789638932/0.0512821;
+	_mix_updated(2,2) = -0.07692307692/0.0512821;
 
+	float t_bias = 0.5;
+	float torq_factor = 1.3;
+	float t_limit = 10;
+	tx = _vehicle_torque_get.tx;
+	ty = _vehicle_torque_get.ty;
+	if(abs(tx)>t_limit)
+		tx = tx/abs(tx)*t_limit;
+	if( abs(ty)>t_limit)
+		ty = ty/abs(ty)*t_limit;
+
+	_actuator_sp(0) = (_mix_updated(0, 0)*tx*t_bias) + (_mix_updated(0, 1)*ty*t_bias) + (_mix_updated(0, 2)*_control_sp(ControlAxis::THRUST_Z)*torq_factor);
+	_actuator_sp(1) = 0;
+	_actuator_sp(2) = (_mix_updated(1, 0)*tx*t_bias) + (_mix_updated(1, 1)*ty*t_bias) + (_mix_updated(1, 2)*_control_sp(ControlAxis::THRUST_Z)*torq_factor);
+	_actuator_sp(3) = (_mix_updated(2, 0)*tx*t_bias) + (_mix_updated(2, 1)*ty*t_bias) + (_mix_updated(2, 2)*_control_sp(ControlAxis::THRUST_Z)*torq_factor);
+
+
+	cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl<<endl;
 }
 
 void
 ControlAllocationSequentialDesaturation::motor_failed_3(){
 	matrix::Matrix<float, 3, 3> _mix_updated;
-	_mix_updated(0,0) = 0;
-	_mix_updated(1,0) = 0.41025641026;
-	_mix_updated(2,0) = -0.41025641026;
-	_mix_updated(0,1) = 0.507743082;
-	_mix_updated(1,1) = 0.07785393924;
-	_mix_updated(2,1) = -0.58559702124;
-	_mix_updated(0,2) = -0.07692307692;
-	_mix_updated(1,2) = -0.08871794872;
-	_mix_updated(2,2) = 0.01179487179;
+	_mix_updated(0,0) = 0/0.636023;
+	_mix_updated(1,0) = 0.41025641026/0.636023;
+	_mix_updated(2,0) = -0.41025641026/0.636023;
+	_mix_updated(0,1) = 0.507743082/0.636023;
+	_mix_updated(1,1) = 0.07785393924/0.636023;
+	_mix_updated(2,1) = -0.58559702124/0.636023;
+	_mix_updated(0,2) = -0.07692307692/0.0591453;
+	_mix_updated(1,2) = -0.08871794872/0.0591453;
+	_mix_updated(2,2) = 0.01179487179/0.0591453;
 
+	float t_bias = 0.5;
+	float torq_factor = 1.3;
+	float t_limit = 10;
+	tx = _vehicle_torque_get.tx;
+	ty = _vehicle_torque_get.ty;
+	if(abs(tx)>t_limit)
+		tx = tx/abs(tx)*t_limit;
+	if( abs(ty)>t_limit)
+		ty = ty/abs(ty)*t_limit;
+
+	_actuator_sp(0) = (_mix_updated(0, 0)*tx*t_bias) + (_mix_updated(0, 1)*ty*t_bias) + (_mix_updated(0, 2)*_control_sp(ControlAxis::THRUST_Z)*torq_factor);
+	_actuator_sp(1) = (_mix_updated(1, 0)*tx*t_bias) + (_mix_updated(1, 1)*ty*t_bias) + (_mix_updated(1, 2)*_control_sp(ControlAxis::THRUST_Z)*torq_factor);
+	_actuator_sp(2) = 0;
+	_actuator_sp(3) = (_mix_updated(2, 0)*tx*t_bias) + (_mix_updated(2, 1)*ty*t_bias) + (_mix_updated(2, 2)*_control_sp(ControlAxis::THRUST_Z)*torq_factor);
+
+
+	cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl<<endl;
 }
 
 void
 ControlAllocationSequentialDesaturation::motor_failed_4(){
 	matrix::Matrix<float, 3, 3> _mix_updated;
-	_mix_updated(0,0) = -0.31397174254;
-	_mix_updated(1,0) = 0;
-	_mix_updated(2,0) = 0.31397174254;
-	_mix_updated(0,1) = 0.05958209636;
-	_mix_updated(1,1) = -0.507743082;
-	_mix_updated(2,1) = 0.44816098564;
-	_mix_updated(0,2) = -0.06789638932;
-	_mix_updated(1,2) = -0.07692307692;
-	_mix_updated(2,2) = -0.0090266876;
+	_mix_updated(0,0) = -0.31397174254/0.555098;
+	_mix_updated(1,0) = 0/0.555098;
+	_mix_updated(2,0) = 0.31397174254/0.555098;
+	_mix_updated(0,1) = 0.05958209636/0.555098;
+	_mix_updated(1,1) = -0.507743082/0.555098;
+	_mix_updated(2,1) = 0.44816098564/0.555098;
+	_mix_updated(0,2) = -0.06789638932/0.0512821;
+	_mix_updated(1,2) = -0.07692307692/0.0512821;
+	_mix_updated(2,2) = -0.0090266876/0.0512821;
+
+	float t_bias = 0.5;
+	float torq_factor = 1.3;
+	float t_limit = 10;
+	tx = _vehicle_torque_get.tx;
+	ty = _vehicle_torque_get.ty;
+	if(abs(tx)>t_limit)
+		tx = tx/abs(tx)*t_limit;
+	if( abs(ty)>t_limit)
+		ty = ty/abs(ty)*t_limit;
+
+	_actuator_sp(0) = (_mix_updated(0, 0)*tx*t_bias) + (_mix_updated(0, 1)*ty*t_bias) + (_mix_updated(0, 2)*_control_sp(ControlAxis::THRUST_Z)*torq_factor);
+	_actuator_sp(1) = (_mix_updated(1, 0)*tx*t_bias) + (_mix_updated(1, 1)*ty*t_bias) + (_mix_updated(1, 2)*_control_sp(ControlAxis::THRUST_Z)*torq_factor);
+	_actuator_sp(2) = (_mix_updated(2, 0)*tx*t_bias) + (_mix_updated(2, 1)*ty*t_bias) + (_mix_updated(2, 2)*_control_sp(ControlAxis::THRUST_Z)*torq_factor);
+	_actuator_sp(3) = 0;
 
 
-
+	cout<<_actuator_sp(0)<<" "<<_actuator_sp(1)<<" "<<_actuator_sp(2)<<" "<<_actuator_sp(3)<<endl<<endl;
 }
 // ###################################################
 
