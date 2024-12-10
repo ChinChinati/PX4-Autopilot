@@ -316,8 +316,8 @@ ControlAllocationSequentialDesaturation:: motor_failed_1(){
 	_mix_updated(1,2) = -0.07692307692/0.0591;
 	_mix_updated(2,2) = -0.08871794872/0.0591;
 
-	float t_bias = 0.5;
-	float torq_factor = 1.3;
+	float t_bias = 0.45;
+	float torq_factor = 1.2;
 	float t_limit = 10;
 	tx = _vehicle_torque_get.tx;
 	ty = _vehicle_torque_get.ty;

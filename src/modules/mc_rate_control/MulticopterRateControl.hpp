@@ -107,7 +107,7 @@ public:
 	float Q;
 	float v1;
 	float v2;
-	
+
 	float Kp_p = 3.00,
 		Kp_q = 3.,
 		Kd_p = 0.02, // 0,1 or 0.2
@@ -169,7 +169,9 @@ private:
 	primary_axes_s _primary_axes_get{
 		.timestamp = 0,
 		.nd ={0.0,0.0,0.0},
+		.n ={0.0,0.0,0.0},
 		.tc = 0.0,
+
 	};
 
 	motor_failed_s _motor_failed_get {

@@ -142,10 +142,6 @@ public:
 	float Vq;
 	float P;
 	float Q;
-	float Kp_p = 1,
-		Kp_q = 1,
-		Kd_p = .01,
-		Kd_q = .01;
 	// Min Limits
 	// float k1 = 10000000;
 	// float k2 = 10000000;
@@ -154,8 +150,8 @@ public:
 	// float k1 = 100000000;
 	// float k2 = 100000000;
 
-	float k1 = 4*10000000;
-	float k2 = 4*10000000;
+	float k1 = 1.72*10000000;
+	float k2 = 1.72*10000000;
 
 	// ####################################################
 

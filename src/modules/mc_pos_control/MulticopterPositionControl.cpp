@@ -840,6 +840,9 @@ void MulticopterPositionControl::Run()
 		values_from_position_control.nd[0] = nd(0,0);
 		values_from_position_control.nd[1] = nd(1,0);
 		values_from_position_control.nd[2] = nd(2,0);
+		values_from_position_control.n[0] = n(0,0);
+		values_from_position_control.n[1] = n(1,0);
+		values_from_position_control.n[2] = n(2,0);
 		values_from_position_control.tc = pos(2);
 		_primary_axes_pub.publish(values_from_position_control);
 
